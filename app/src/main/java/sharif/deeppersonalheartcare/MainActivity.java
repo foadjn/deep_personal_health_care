@@ -157,10 +157,10 @@ public class MainActivity extends Activity {
                 }
 
                 final int rawDownSample = 1;
+
                 final int waveletDownSample = 1;
                 final int waveletOmit = 0;
-                final int pcaInput =
-                        pcaInputCalculator(rawDownSample, waveletDownSample, waveletOmit);
+                final int pcaInput = pcaInputCalculator(rawDownSample, waveletDownSample, waveletOmit);
 
                 final int pcaOutput = 600;
 
@@ -234,21 +234,21 @@ public class MainActivity extends Activity {
                     long pcaTotalTime = crossEndTime - crossStartTime;
                     pcaTimes[index] = pcaTotalTime;
 
+                }
 
-                    for (int i = 0; i < 9; i++) {
-                        Log.d("prof.Hashemi", "pca time is:" + pcaTimes[i] + "\nwavelet time is: " +
+                for (int i = 0; i < 9; i++) {
+                    Log.d("prof.Hashemi", "pca time is:" + pcaTimes[i] + "\nwavelet time is: " +
                                 waveletTimes[i]);
-                    }
+                }
 
-                    Arrays.sort(pcaTimes);
-                    Arrays.sort(waveletTimes);
+                Arrays.sort(pcaTimes);
+                Arrays.sort(waveletTimes);
 
-                    mTextView.setText("pca time is:" +
+                mTextView.setText("pca time is:" +
                             pcaTimes[4] + "\n wavelet time is: " + waveletTimes[4]);
 
-                    Log.w("***", "pca time is:" +
-                            pcaTimes[4] + "\nwavelet time is: " + waveletTimes[4]);
-                }
+                Log.w("***", "median pca time is:" +
+                            pcaTimes[4] + "\nmedian wavelet time is: " + waveletTimes[4]);
             }
         });
     }
