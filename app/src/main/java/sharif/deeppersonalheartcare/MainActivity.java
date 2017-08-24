@@ -229,14 +229,6 @@ public class MainActivity extends Activity {
                     long lstmEnd = System.currentTimeMillis();
                     lstmTimes[index] = lstmEnd - lstmStart;
 
-                    Log.d("times", "For the " + String.valueOf(index) + " time.");
-                    try {
-                        if (index != 8)
-                            Thread.sleep(0);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
                 }
 
                 for (int i = 0; i < 9; i++) {
@@ -247,7 +239,7 @@ public class MainActivity extends Activity {
                 String massage = String.format("lstm time is:%s", String.valueOf(lstmTimes[4]));
                 mTextView.setText(massage);
 
-                Log.w("***", "lstm time is:" + lstmTimes[4]);
+                Log.w("***", "median of lstm is:" + lstmTimes[4]);
 
             }
         });
