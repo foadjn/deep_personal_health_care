@@ -6,7 +6,9 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.wearable.view.WatchViewStub;
 import android.util.Log;
+import android.widget.TextView;
 
 import java.util.Arrays;
 import java.util.List;
@@ -18,6 +20,7 @@ import sharif.deeppersonalheartcare.wavelet.Wavelet;
 public class MainActivity extends Activity {
 
     static Random random = new Random();
+    private TextView mTextView;
 
     private static float[] dot(float[] in1, float[] in2) {
 
@@ -215,108 +218,112 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        final WatchViewStub stub = findViewById(R.id.watch_view_stub);
+        stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
+            @Override
+            public void onLayoutInflated(WatchViewStub stub) {
+                mTextView = stub.findViewById(R.id.text);
+                List<ApplicationInfo> packages;
+                PackageManager pm = getPackageManager();
+                //get a list of installed apps.
+                packages = pm.getInstalledApplications(0);
 
-        List<ApplicationInfo> packages;
-        PackageManager pm = getPackageManager();
-        //get a list of installed apps.
-        packages = pm.getInstalledApplications(0);
+                ActivityManager mActivityManager = (ActivityManager) getApplicationContext()
+                        .getSystemService(Context.ACTIVITY_SERVICE);
 
-        ActivityManager mActivityManager = (ActivityManager) getApplicationContext()
-                .getSystemService(Context.ACTIVITY_SERVICE);
+                for (ApplicationInfo packageInfo : packages) {
+                    mActivityManager.killBackgroundProcesses(packageInfo.packageName);
+                }
 
-        for (ApplicationInfo packageInfo : packages) {
-            mActivityManager.killBackgroundProcesses(packageInfo.packageName);
-        }
+                final int rawDownSample = 1;
+                final int waveletDownSample = 1;
+                final int waveletOmit = 0;
+                final int pcaInput =
+                        pcaInputCalculator(rawDownSample, waveletDownSample, waveletOmit);
 
-        final int rawDownSample = 1;
-        final int waveletDownSample = 1;
-        final int waveletOmit = 0;
-        final int pcaInput =
-                pcaInputCalculator(rawDownSample, waveletDownSample, waveletOmit);
+                final int lstmDepth = 1;
+                final int pcaOutput = 600;
+                final int lstmWidth = pcaOutput / lstmDepth;
+                final int lstmNh = 30;
 
-        final int lstmDepth = 1;
-        final int pcaOutput = 600;
-        final int lstmWidth = pcaOutput / lstmDepth;
-        final int lstmNh = 30;
+                ArraysFactory arrayFactory = new ArraysFactory(getApplicationContext());
 
-        ArraysFactory arrayFactory = new ArraysFactory(getApplicationContext());
+                long[] lstmTimes = new long[9];
+                long[] pcaTimes = new long[9];
+                long[] waveletTimes = new long[9];
 
-        long[] lstmTimes = new long[9];
-        long[] pcaTimes = new long[9];
-        long[] waveletTimes = new long[9];
+                float[] firstRawInput = arrayFactory.get1DFloats("first_raw_input");
+                float[] firstFeature = arrayFactory.get1DFloats("first_feature");
+                float[] secondRawInput = arrayFactory.get1DFloats("second_raw_input");
+                float[] secondFeature = arrayFactory.get1DFloats("second_feature");
 
-        float[] firstRawInput = arrayFactory.get1DFloats("first_raw_input");
-        float[] firstFeature = arrayFactory.get1DFloats("first_feature");
-        float[] secondRawInput = arrayFactory.get1DFloats("second_raw_input");
-        float[] secondFeature = arrayFactory.get1DFloats("second_feature");
+                float[][] w0 = arrayCutter2D(arrayFactory.get2DFloats("w0"), pcaOutput, lstmNh);
+                float[][] w1 = arrayCutter2D(arrayFactory.get2DFloats("w1"), pcaOutput, lstmNh);
+                float[][] w2 = arrayCutter2D(arrayFactory.get2DFloats("w2"), pcaOutput, lstmNh);
+                float[][] w3 = arrayCutter2D(arrayFactory.get2DFloats("w3"), pcaOutput, lstmNh);
 
-        float[][] w0 = arrayCutter2D(arrayFactory.get2DFloats("w0"), pcaOutput, lstmNh);
-        float[][] w1 = arrayCutter2D(arrayFactory.get2DFloats("w1"), pcaOutput, lstmNh);
-        float[][] w2 = arrayCutter2D(arrayFactory.get2DFloats("w2"), pcaOutput, lstmNh);
-        float[][] w3 = arrayCutter2D(arrayFactory.get2DFloats("w3"), pcaOutput, lstmNh);
+                float[][] u0 = arrayCutter2D(arrayFactory.get2DFloats("u0"), lstmNh, lstmNh);
+                float[][] u1 = arrayCutter2D(arrayFactory.get2DFloats("u1"), lstmNh, lstmNh);
+                float[][] u2 = arrayCutter2D(arrayFactory.get2DFloats("u2"), lstmNh, lstmNh);
+                float[][] u3 = arrayCutter2D(arrayFactory.get2DFloats("u3"), lstmNh, lstmNh);
 
-        float[][] u0 = arrayCutter2D(arrayFactory.get2DFloats("u0"), lstmNh, lstmNh);
-        float[][] u1 = arrayCutter2D(arrayFactory.get2DFloats("u1"), lstmNh, lstmNh);
-        float[][] u2 = arrayCutter2D(arrayFactory.get2DFloats("u2"), lstmNh, lstmNh);
-        float[][] u3 = arrayCutter2D(arrayFactory.get2DFloats("u3"), lstmNh, lstmNh);
+                float[] b0 = arrayCutter1D(arrayFactory.get1DFloats("b0"), lstmNh);
+                float[] b1 = arrayCutter1D(arrayFactory.get1DFloats("b1"), lstmNh);
+                float[] b2 = arrayCutter1D(arrayFactory.get1DFloats("b2"), lstmNh);
+                float[] b3 = arrayCutter1D(arrayFactory.get1DFloats("b3"), lstmNh);
+                float[] b4 = arrayCutter1D(arrayFactory.get1DFloats("fully_connected_b"), 7);
 
-        float[] b0 = arrayCutter1D(arrayFactory.get1DFloats("b0"), lstmNh);
-        float[] b1 = arrayCutter1D(arrayFactory.get1DFloats("b1"), lstmNh);
-        float[] b2 = arrayCutter1D(arrayFactory.get1DFloats("b2"), lstmNh);
-        float[] b3 = arrayCutter1D(arrayFactory.get1DFloats("b3"), lstmNh);
-        float[] b4 = arrayCutter1D(arrayFactory.get1DFloats("fully_connected_b"), 7);
+                float[] c = arrayCutter1D(arrayFactory.get1DFloats("c"), lstmNh);
+                float[] h = arrayCutter1D(arrayFactory.get1DFloats("h"), lstmNh);
 
-        float[] c = arrayCutter1D(arrayFactory.get1DFloats("c"), lstmNh);
-        float[] h = arrayCutter1D(arrayFactory.get1DFloats("h"), lstmNh);
+                //fully connected
+                float[][] fullyConnected = arrayCutter2D(
+                        arrayFactory.get2DFloats("fully_connected_w"), lstmNh, 7);
 
-        //fully connected
-        float[][] fullyConnected = arrayCutter2D(
-                arrayFactory.get2DFloats("fully_connected_w"), lstmNh, 7);
+                //according to the paper this is the lstm input and it's name must be x.
+                float[] x = arrayFactory.get1DFloats("x");
 
-        //according to the paper this is the lstm input and it's name must be x.
-        float[] x = arrayFactory.get1DFloats("x");
+                float[] highPassFilter = arrayFactory.get1DFloats("high_pass_filter");
+                float[] lowPassFilter = arrayFactory.get1DFloats("low_pass_filter");
 
-        float[] highPassFilter = arrayFactory.get1DFloats("high_pass_filter");
-        float[] lowPassFilter = arrayFactory.get1DFloats("low_pass_filter");
-
-        float[][] pca = new float[pcaInput][pcaOutput];
-        pca = randomInit2D(pca);
+                float[][] pca = new float[pcaInput][pcaOutput];
+                pca = randomInit2D(pca);
 
         /*
         from here the main code start to dot, cross and sum the matrices
          */
-        for (int index = 0; index < 9; index++) {
+                for (int index = 0; index < 9; index++) {
 
             /*
             ********************************************************************
             ***************************   wavelet start  ***********************
             ********************************************************************
              */
-            long waveletStartTime = System.currentTimeMillis();
+                    long waveletStartTime = System.currentTimeMillis();
 
-            Wavelet wavelet = new Wavelet();
+                    Wavelet wavelet = new Wavelet();
 
-            float[] wavyInput1 = wavelet.wavelet(waveletOmit,
-                    downSample(firstRawInput, waveletDownSample),
-                    highPassFilter,
-                    lowPassFilter);
+                    float[] wavyInput1 = wavelet.wavelet(waveletOmit,
+                            downSample(firstRawInput, waveletDownSample),
+                            highPassFilter,
+                            lowPassFilter);
 
-            float[] wavyInput2 = wavelet.wavelet(waveletOmit,
-                    downSample(secondRawInput, waveletDownSample),
-                    highPassFilter,
-                    lowPassFilter);
+                    float[] wavyInput2 = wavelet.wavelet(waveletOmit,
+                            downSample(secondRawInput, waveletDownSample),
+                            highPassFilter,
+                            lowPassFilter);
 
-            float[] x1 = appender(
-                    downSample(firstRawInput, rawDownSample),
-                    wavyInput1,
-                    firstFeature,
-                    downSample(secondRawInput, rawDownSample),
-                    wavyInput2,
-                    secondFeature);
+                    float[] x1 = appender(
+                            downSample(firstRawInput, rawDownSample),
+                            wavyInput1,
+                            firstFeature,
+                            downSample(secondRawInput, rawDownSample),
+                            wavyInput2,
+                            secondFeature);
 
-            long waveletEndTime = System.currentTimeMillis();
-            long totalWaveletTime = waveletEndTime - waveletStartTime;
-            waveletTimes[index] = totalWaveletTime;
+                    long waveletEndTime = System.currentTimeMillis();
+                    long totalWaveletTime = waveletEndTime - waveletStartTime;
+                    waveletTimes[index] = totalWaveletTime;
 
             /*
             ********************************************************************
@@ -324,91 +331,93 @@ public class MainActivity extends Activity {
             ********************************************************************
              */
 
-            long crossStartTime = System.currentTimeMillis();
+                    long crossStartTime = System.currentTimeMillis();
 
-            cross(x1, pca);
+                    cross(x1, pca);
 
-            long crossEndTime = System.currentTimeMillis();
-            long pcaTotalTime = crossEndTime - crossStartTime;
-            pcaTimes[index] = pcaTotalTime;
+                    long crossEndTime = System.currentTimeMillis();
+                    long pcaTotalTime = crossEndTime - crossStartTime;
+                    pcaTimes[index] = pcaTotalTime;
 
             /*
             ********************************************************************
             ****************************   LSTM start  *************************
             ********************************************************************
              */
-            long lstmStart = System.currentTimeMillis();
+                    long lstmStart = System.currentTimeMillis();
 
-            for (int l = 0; l < lstmDepth; l++) {
-                float[] i = tanHEval(sum3vector(
-                        crossInRange(x, w0, l * lstmWidth, (l + 1) * lstmWidth),
-                        cross(h, u0),
-                        b0)
-                );
+                    for (int l = 0; l < lstmDepth; l++) {
+                        float[] i = tanHEval(sum3vector(
+                                crossInRange(x, w0, l * lstmWidth, (l + 1) * lstmWidth),
+                                cross(h, u0),
+                                b0)
+                        );
 
-                c = sum2Vector(
-                        dot(
-                                sigmoid(sum3vector(
-                                        crossInRange(x, w1, l * lstmWidth,
-                                                (l + 1) * lstmWidth),
-                                        cross(h, u1),
-                                        b1)
+                        c = sum2Vector(
+                                dot(
+                                        sigmoid(sum3vector(
+                                                crossInRange(x, w1, l * lstmWidth,
+                                                        (l + 1) * lstmWidth),
+                                                cross(h, u1),
+                                                b1)
+                                        ),
+                                        i
                                 ),
-                                i
-                        ),
-                        dot(
-                                sigmoid(sum3vector(
-                                        crossInRange(x, w2, l * lstmWidth,
-                                                (l + 1) * lstmWidth),
-                                        cross(h, u2),
-                                        b2)
+                                dot(
+                                        sigmoid(sum3vector(
+                                                crossInRange(x, w2, l * lstmWidth,
+                                                        (l + 1) * lstmWidth),
+                                                cross(h, u2),
+                                                b2)
+                                        ),
+                                        c
+                                )
+                        );
+                        h = dot(
+                                sigmoid(
+                                        sum3vector(
+                                                crossInRange(x, w3, l * lstmWidth,
+                                                        (l + 1) * lstmWidth),
+                                                cross(h, u3),
+                                                b3)
                                 ),
-                                c
-                        )
-                );
-                h = dot(
-                        sigmoid(
-                                sum3vector(
-                                        crossInRange(x, w3, l * lstmWidth,
-                                                (l + 1) * lstmWidth),
-                                        cross(h, u3),
-                                        b3)
-                        ),
-                        tanHEval(c)
-                );
+                                tanHEval(c)
+                        );
+
+                    }
+
+                    sum2Vector(cross(h, fullyConnected), b4);//it's the fully connected layer
+
+                    long lstmEnd = System.currentTimeMillis();
+                    lstmTimes[index] = lstmEnd - lstmStart;
+
+                    Log.d("times", "For the " + String.valueOf(index) + " time.");
+                    try {
+                        if (index != 8)
+                            Thread.sleep(0);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                }
+
+                for (int i = 0; i < 9; i++) {
+                    Log.d("prof.Hashemi", "lstm time is:" + lstmTimes[i] +
+                            "\npca time is: " + pcaTimes[i] + "\nwavelet time is: " +
+                            waveletTimes[i]);
+                }
+
+                Arrays.sort(lstmTimes);
+                Arrays.sort(pcaTimes);
+                Arrays.sort(waveletTimes);
+
+        mTextView.setText("lstm time is:" + lstmTimes[4] + "\n pca time is: " +
+                pcaTimes[4] + "\n wavelet time is: " + waveletTimes[4]);
+
+                Log.w("***", "lstm time is:" + lstmTimes[4] + "\npca time is: " +
+                        pcaTimes[4] + "\nwavelet time is: " + waveletTimes[4]);
 
             }
-
-            sum2Vector(cross(h, fullyConnected), b4);//it's the fully connected layer
-
-            long lstmEnd = System.currentTimeMillis();
-            lstmTimes[index] = lstmEnd - lstmStart;
-
-            Log.d("times", "For the " + String.valueOf(index) + " time.");
-            try {
-                if (index != 8)
-                    Thread.sleep(0);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-        }
-
-        for (int i = 0; i < 9; i++) {
-            Log.d("prof.Hashemi", "lstm time is:" + lstmTimes[i] +
-                    "\npca time is: " + pcaTimes[i] + "\nwavelet time is: " +
-                    waveletTimes[i]);
-        }
-
-        Arrays.sort(lstmTimes);
-        Arrays.sort(pcaTimes);
-        Arrays.sort(waveletTimes);
-
-//        mTextView.setText("lstm time is:" + lstmTimes[4] + "\n pca time is: " +
-//                pcaTimes[4] + "\n wavelet time is: " + waveletTimes[4]);
-
-        Log.w("***", "lstm time is:" + lstmTimes[4] + "\npca time is: " +
-                pcaTimes[4] + "\nwavelet time is: " + waveletTimes[4]);
-
+        });
     }
 }
