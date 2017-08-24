@@ -236,17 +236,17 @@ public class MainActivity extends Activity {
 
 
                     for (int i = 0; i < 9; i++) {
-                        Log.d("prof.Hashemi", "lstm time is:" + pcaTimes[i] + "\nwavelet time is: " +
+                        Log.d("prof.Hashemi", "pca time is:" + pcaTimes[i] + "\nwavelet time is: " +
                                 waveletTimes[i]);
                     }
 
                     Arrays.sort(pcaTimes);
                     Arrays.sort(waveletTimes);
 
-                    mTextView.setText("lstm time is:" +
+                    mTextView.setText("pca time is:" +
                             pcaTimes[4] + "\n wavelet time is: " + waveletTimes[4]);
 
-                    Log.w("***", "lstm time is:" +
+                    Log.w("***", "pca time is:" +
                             pcaTimes[4] + "\nwavelet time is: " + waveletTimes[4]);
                 }
             }
