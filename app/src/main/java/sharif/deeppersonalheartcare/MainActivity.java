@@ -404,7 +404,7 @@ public class MainActivity extends Activity {
         Arrays.sort(pcaTimes);
         Arrays.sort(waveletTimes);
 
-//        mTextView.setText("lstm time is:" + lstmTimes[4] + "\npca time is: " +
+//        mTextView.setText("lstm time is:" + lstmTimes[4] + "\n pca time is: " +
 //                pcaTimes[4] + "\n wavelet time is: " + waveletTimes[4]);
 
         Log.w("***", "lstm time is:" + lstmTimes[4] + "\npca time is: " +
