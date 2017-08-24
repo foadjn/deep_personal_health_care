@@ -22,35 +22,6 @@ public class MainActivity extends Activity {
     static Random random = new Random();
     private TextView mTextView;
 
-    private static float[] dot(float[] in1, float[] in2) {
-
-        if (in2.length == 1) {
-            for (int i = 0; i < in1.length; i++) {
-                in1[i] = in1[i] * in2[0];
-            }
-        } else {
-            for (int i = 0; i < in1.length; i++) {
-                in1[i] = in1[i] * in2[i];
-            }
-        }
-
-        return in1;
-    }
-
-    private static float[] crossInRange(float[] in1, float[][] in2, int i1, int i2) {
-
-        int n = in2[0].length;
-
-        float[] res = new float[n];
-
-        for (int j = 0; j < n; j++) {
-            for (int i = i1; i < i2; i++) {
-                res[j] += in2[i][j] * in1[i];
-            }
-        }
-        return res;
-    }
-
     private static float[] cross(float[] in1, float[][] in2) {
 
         int m = in2.length;
@@ -67,33 +38,6 @@ public class MainActivity extends Activity {
         return res;
     }
 
-    private static float[] sum3vector(float[] in1, float[] in2, float[] in3) {
-
-        for (int i = 0; i < in1.length; i++) {
-            in1[i] = in1[i] + in2[i] + in3[i];
-        }
-
-        return in1;
-    }
-
-    private static float[] sum2Vector(float[] in1, float[] in2) {
-
-        for (int i = 0; i < in1.length; i++) {
-            in1[i] = in1[i] + in2[i];
-        }
-
-        return in1;
-    }
-
-    private static float[] tanHEval(float[] in) {
-
-        for (int i = 0; i < in.length; i++) {
-            in[i] = (float) Math.tanh(in[i]);
-        }
-
-        return in;
-    }
-
     private static float[][] randomInit2D(float[][] in) {
 
         int dim1 = in.length;
@@ -107,13 +51,6 @@ public class MainActivity extends Activity {
             for (int j = 0; j < dim2; j++) {
                 in[i][j] = random.nextFloat();
             }
-        }
-        return in;
-    }
-
-    private static float[] sigmoid(float[] in) {
-        for (int i = 0; i < in.length; i++) {
-            in[i] = (float) (1 / (1 + Math.pow(Math.E, (-1 * in[i]))));
         }
         return in;
     }
@@ -198,22 +135,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    private static float[][] arrayCutter2D(float[][] input, int y, int x) {
-        float[][] output = new float[y][x];
-
-        for (int i = 0; i < y; i++) {
-            System.arraycopy(input[i], 0, output[i], 0, x);
-        }
-        return output;
-    }
-
-    private static float[] arrayCutter1D(float[] input, int x) {
-        float[] output = new float[x];
-
-        System.arraycopy(input, 0, output, 0, x);
-        return output;
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -241,14 +162,10 @@ public class MainActivity extends Activity {
                 final int pcaInput =
                         pcaInputCalculator(rawDownSample, waveletDownSample, waveletOmit);
 
-                final int lstmDepth = 1;
                 final int pcaOutput = 600;
-                final int lstmWidth = pcaOutput / lstmDepth;
-                final int lstmNh = 30;
 
                 ArraysFactory arrayFactory = new ArraysFactory(getApplicationContext());
 
-                long[] lstmTimes = new long[9];
                 long[] pcaTimes = new long[9];
                 long[] waveletTimes = new long[9];
 
@@ -257,28 +174,6 @@ public class MainActivity extends Activity {
                 float[] secondRawInput = arrayFactory.get1DFloats("second_raw_input");
                 float[] secondFeature = arrayFactory.get1DFloats("second_feature");
 
-                float[][] w0 = arrayCutter2D(arrayFactory.get2DFloats("w0"), pcaOutput, lstmNh);
-                float[][] w1 = arrayCutter2D(arrayFactory.get2DFloats("w1"), pcaOutput, lstmNh);
-                float[][] w2 = arrayCutter2D(arrayFactory.get2DFloats("w2"), pcaOutput, lstmNh);
-                float[][] w3 = arrayCutter2D(arrayFactory.get2DFloats("w3"), pcaOutput, lstmNh);
-
-                float[][] u0 = arrayCutter2D(arrayFactory.get2DFloats("u0"), lstmNh, lstmNh);
-                float[][] u1 = arrayCutter2D(arrayFactory.get2DFloats("u1"), lstmNh, lstmNh);
-                float[][] u2 = arrayCutter2D(arrayFactory.get2DFloats("u2"), lstmNh, lstmNh);
-                float[][] u3 = arrayCutter2D(arrayFactory.get2DFloats("u3"), lstmNh, lstmNh);
-
-                float[] b0 = arrayCutter1D(arrayFactory.get1DFloats("b0"), lstmNh);
-                float[] b1 = arrayCutter1D(arrayFactory.get1DFloats("b1"), lstmNh);
-                float[] b2 = arrayCutter1D(arrayFactory.get1DFloats("b2"), lstmNh);
-                float[] b3 = arrayCutter1D(arrayFactory.get1DFloats("b3"), lstmNh);
-                float[] b4 = arrayCutter1D(arrayFactory.get1DFloats("fully_connected_b"), 7);
-
-                float[] c = arrayCutter1D(arrayFactory.get1DFloats("c"), lstmNh);
-                float[] h = arrayCutter1D(arrayFactory.get1DFloats("h"), lstmNh);
-
-                //fully connected
-                float[][] fullyConnected = arrayCutter2D(
-                        arrayFactory.get2DFloats("fully_connected_w"), lstmNh, 7);
 
                 //according to the paper this is the lstm input and it's name must be x.
                 float[] x = arrayFactory.get1DFloats("x");
@@ -339,84 +234,21 @@ public class MainActivity extends Activity {
                     long pcaTotalTime = crossEndTime - crossStartTime;
                     pcaTimes[index] = pcaTotalTime;
 
-            /*
-            ********************************************************************
-            ****************************   LSTM start  *************************
-            ********************************************************************
-             */
-                    long lstmStart = System.currentTimeMillis();
 
-                    for (int l = 0; l < lstmDepth; l++) {
-                        float[] i = tanHEval(sum3vector(
-                                crossInRange(x, w0, l * lstmWidth, (l + 1) * lstmWidth),
-                                cross(h, u0),
-                                b0)
-                        );
-
-                        c = sum2Vector(
-                                dot(
-                                        sigmoid(sum3vector(
-                                                crossInRange(x, w1, l * lstmWidth,
-                                                        (l + 1) * lstmWidth),
-                                                cross(h, u1),
-                                                b1)
-                                        ),
-                                        i
-                                ),
-                                dot(
-                                        sigmoid(sum3vector(
-                                                crossInRange(x, w2, l * lstmWidth,
-                                                        (l + 1) * lstmWidth),
-                                                cross(h, u2),
-                                                b2)
-                                        ),
-                                        c
-                                )
-                        );
-                        h = dot(
-                                sigmoid(
-                                        sum3vector(
-                                                crossInRange(x, w3, l * lstmWidth,
-                                                        (l + 1) * lstmWidth),
-                                                cross(h, u3),
-                                                b3)
-                                ),
-                                tanHEval(c)
-                        );
-
+                    for (int i = 0; i < 9; i++) {
+                        Log.d("prof.Hashemi", "lstm time is:" + pcaTimes[i] + "\nwavelet time is: " +
+                                waveletTimes[i]);
                     }
 
-                    sum2Vector(cross(h, fullyConnected), b4);//it's the fully connected layer
+                    Arrays.sort(pcaTimes);
+                    Arrays.sort(waveletTimes);
 
-                    long lstmEnd = System.currentTimeMillis();
-                    lstmTimes[index] = lstmEnd - lstmStart;
+                    mTextView.setText("lstm time is:" +
+                            pcaTimes[4] + "\n wavelet time is: " + waveletTimes[4]);
 
-                    Log.d("times", "For the " + String.valueOf(index) + " time.");
-                    try {
-                        if (index != 8)
-                            Thread.sleep(0);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
+                    Log.w("***", "lstm time is:" +
+                            pcaTimes[4] + "\nwavelet time is: " + waveletTimes[4]);
                 }
-
-                for (int i = 0; i < 9; i++) {
-                    Log.d("prof.Hashemi", "lstm time is:" + lstmTimes[i] +
-                            "\npca time is: " + pcaTimes[i] + "\nwavelet time is: " +
-                            waveletTimes[i]);
-                }
-
-                Arrays.sort(lstmTimes);
-                Arrays.sort(pcaTimes);
-                Arrays.sort(waveletTimes);
-
-        mTextView.setText("lstm time is:" + lstmTimes[4] + "\n pca time is: " +
-                pcaTimes[4] + "\n wavelet time is: " + waveletTimes[4]);
-
-                Log.w("***", "lstm time is:" + lstmTimes[4] + "\npca time is: " +
-                        pcaTimes[4] + "\nwavelet time is: " + waveletTimes[4]);
-
             }
         });
     }
