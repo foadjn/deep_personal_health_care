@@ -130,7 +130,7 @@ public class MainActivity extends Activity {
                             highPassFilter,
                             lowPassFilter);
 
-                    float[] x1 = appender(
+                    appender(
                             downSample(firstRawInput, rawDownSample),
                             wavyInput1,
                             firstFeature,
