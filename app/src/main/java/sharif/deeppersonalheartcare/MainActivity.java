@@ -55,39 +55,6 @@ public class MainActivity extends Activity {
         return in;
     }
 
-    private static int pcaInputCalculator(int rawDownSample, int waveletDownSample, int waveletOmit) {
-
-        int pcaInput = 0;
-
-        if (rawDownSample == 1 && waveletDownSample == 1 && waveletOmit == 0) {
-            pcaInput = 1026;
-        } else if (rawDownSample == 1 && waveletDownSample == 1 && waveletOmit == 1) {
-            pcaInput = 774;
-        } else if (rawDownSample == 1 && waveletDownSample == 1 && waveletOmit == 2) {
-            pcaInput = 646;
-        } else if (rawDownSample == 1 && waveletDownSample == 2 && waveletOmit == 0) {
-            pcaInput = 778;
-        } else if (rawDownSample == 1 && waveletDownSample == 2 && waveletOmit == 1) {
-            pcaInput = 650;
-        } else if (rawDownSample == 1 && waveletDownSample == 2 && waveletOmit == 2) {
-            pcaInput = 584;
-        } else if (rawDownSample == 2 && waveletDownSample == 1 && waveletOmit == 0) {
-            pcaInput = 776;
-        } else if (rawDownSample == 2 && waveletDownSample == 1 && waveletOmit == 1) {
-            pcaInput = 524;
-        } else if (rawDownSample == 2 && waveletDownSample == 1 && waveletOmit == 2) {
-            pcaInput = 396;
-        } else if (rawDownSample == 2 && waveletDownSample == 2 && waveletOmit == 0) {
-            pcaInput = 528;
-        } else if (rawDownSample == 2 && waveletDownSample == 2 && waveletOmit == 1) {
-            pcaInput = 400;
-        } else if (rawDownSample == 2 && waveletDownSample == 2 && waveletOmit == 2) {
-            pcaInput = 334;
-        }
-
-        return pcaInput;
-    }
-
     private static float[] appender(float[] x1, float[] x2, float[] x3, float[] x4, float[] x5,
                                     float[] x6) {
         float[] output =
@@ -157,68 +124,60 @@ public class MainActivity extends Activity {
                 }
 
                 final int rawDownSample = 1;
-
                 final int waveletDownSample = 1;
                 final int waveletOmit = 0;
-                final int pcaInput = pcaInputCalculator(rawDownSample, waveletDownSample, waveletOmit);
 
-                final int pcaOutput = 600;
+                final int[] allPcaOutput = new int[]{600, 500, 400, 300, 200, 100};
+                final int[] allPcaInput = new int[]{1026, 776, 774, 524, 646, 396,
+                        778, 528, 650, 400, 584, 334};
+                for (int pcaInput : allPcaInput) {
+                    for (int pcaOutput : allPcaOutput) {
 
-                ArraysFactory arrayFactory = new ArraysFactory(getApplicationContext());
+                        ArraysFactory arrayFactory = new ArraysFactory(getApplicationContext());
 
-                long[] pcaTimes = new long[9];
-                long[] waveletTimes = new long[9];
+                        long[] pcaTimes = new long[9];
 
-                float[] firstRawInput = arrayFactory.get1DFloats("first_raw_input");
-                float[] firstFeature = arrayFactory.get1DFloats("first_feature");
-                float[] secondRawInput = arrayFactory.get1DFloats("second_raw_input");
-                float[] secondFeature = arrayFactory.get1DFloats("second_feature");
+                        float[] firstRawInput = arrayFactory.get1DFloats("first_raw_input");
+                        float[] firstFeature = arrayFactory.get1DFloats("first_feature");
+                        float[] secondRawInput = arrayFactory.get1DFloats("second_raw_input");
+                        float[] secondFeature = arrayFactory.get1DFloats("second_feature");
 
 
-                //according to the paper this is the lstm input and it's name must be x.
-                float[] x = arrayFactory.get1DFloats("x");
+                        float[] highPassFilter = arrayFactory.get1DFloats("high_pass_filter");
+                        float[] lowPassFilter = arrayFactory.get1DFloats("low_pass_filter");
 
-                float[] highPassFilter = arrayFactory.get1DFloats("high_pass_filter");
-                float[] lowPassFilter = arrayFactory.get1DFloats("low_pass_filter");
-
-                float[][] pca = new float[pcaInput][pcaOutput];
-                pca = randomInit2D(pca);
+                        float[][] pca = new float[pcaInput][pcaOutput];
+                        pca = randomInit2D(pca);
 
         /*
         from here the main code start to dot, cross and sum the matrices
          */
-                for (int index = 0; index < 9; index++) {
+                        for (int index = 0; index < 9; index++) {
 
             /*
             ********************************************************************
             ***************************   wavelet start  ***********************
             ********************************************************************
              */
-                    long waveletStartTime = System.currentTimeMillis();
+                            Wavelet wavelet = new Wavelet();
 
-                    Wavelet wavelet = new Wavelet();
+                            float[] wavyInput1 = wavelet.wavelet(waveletOmit,
+                                    downSample(firstRawInput, waveletDownSample),
+                                    highPassFilter,
+                                    lowPassFilter);
 
-                    float[] wavyInput1 = wavelet.wavelet(waveletOmit,
-                            downSample(firstRawInput, waveletDownSample),
-                            highPassFilter,
-                            lowPassFilter);
+                            float[] wavyInput2 = wavelet.wavelet(waveletOmit,
+                                    downSample(secondRawInput, waveletDownSample),
+                                    highPassFilter,
+                                    lowPassFilter);
 
-                    float[] wavyInput2 = wavelet.wavelet(waveletOmit,
-                            downSample(secondRawInput, waveletDownSample),
-                            highPassFilter,
-                            lowPassFilter);
-
-                    float[] x1 = appender(
-                            downSample(firstRawInput, rawDownSample),
-                            wavyInput1,
-                            firstFeature,
-                            downSample(secondRawInput, rawDownSample),
-                            wavyInput2,
-                            secondFeature);
-
-                    long waveletEndTime = System.currentTimeMillis();
-                    long totalWaveletTime = waveletEndTime - waveletStartTime;
-                    waveletTimes[index] = totalWaveletTime;
+                            float[] x1 = appender(
+                                    downSample(firstRawInput, rawDownSample),
+                                    wavyInput1,
+                                    firstFeature,
+                                    downSample(secondRawInput, rawDownSample),
+                                    wavyInput2,
+                                    secondFeature);
 
             /*
             ********************************************************************
@@ -226,29 +185,36 @@ public class MainActivity extends Activity {
             ********************************************************************
              */
 
-                    long crossStartTime = System.currentTimeMillis();
+                            long crossStartTime = System.currentTimeMillis();
 
-                    cross(x1, pca);
+                            cross(x1, pca);
 
-                    long crossEndTime = System.currentTimeMillis();
-                    long pcaTotalTime = crossEndTime - crossStartTime;
-                    pcaTimes[index] = pcaTotalTime;
+                            long crossEndTime = System.currentTimeMillis();
+                            long pcaTotalTime = crossEndTime - crossStartTime;
+                            pcaTimes[index] = pcaTotalTime;
 
+                            try{
+                                Thread.sleep(60000);
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
+
+                        }
+
+                        Log.d("prof.Hashemi", "pca input dim is:" + pcaInput);
+                        Log.d("prof.Hashemi", "pca output dim is:" + pcaOutput);
+                        for (int i = 0; i < 9; i++) {
+                            Log.d("prof.Hashemi", "pca time is:" + pcaTimes[i]);
+                        }
+
+                        Arrays.sort(pcaTimes);
+
+                        String massage = "pca time is:" + pcaTimes[4];
+                        mTextView.setText(massage);
+
+                        Log.w("***", "median of pca is:" + pcaTimes[4]);
+                    }
                 }
-
-                for (int i = 0; i < 9; i++) {
-                    Log.d("prof.Hashemi", "pca time is:" + pcaTimes[i] + "\nwavelet time is: " +
-                                waveletTimes[i]);
-                }
-
-                Arrays.sort(pcaTimes);
-                Arrays.sort(waveletTimes);
-
-                mTextView.setText("pca time is:" +
-                            pcaTimes[4] + "\n wavelet time is: " + waveletTimes[4]);
-
-                Log.w("***", "median pca time is:" +
-                            pcaTimes[4] + "\nmedian wavelet time is: " + waveletTimes[4]);
             }
         });
     }
