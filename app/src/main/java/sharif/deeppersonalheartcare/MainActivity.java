@@ -135,111 +135,114 @@ public class MainActivity extends Activity {
                 for (ApplicationInfo packageInfo : packages) {
                     mActivityManager.killBackgroundProcesses(packageInfo.packageName);
                 }
+                int[] allLSTMDepth = new int[]{1,2,4,5,10,20};
+                for(int lstmDepth : allLSTMDepth) {
 
-                final int lstmDepth = 1;
-                final int pcaOutput = 600;
-                final int lstmWidth = pcaOutput / lstmDepth;
-                final int lstmNh = 30;
 
-                ArraysFactory arrayFactory = new ArraysFactory(getApplicationContext());
+                    final int pcaOutput = 600;
+                    final int lstmWidth = pcaOutput / lstmDepth;
+                    final int lstmNh = 30;
 
-                long[] lstmTimes = new long[9];
+                    ArraysFactory arrayFactory = new ArraysFactory(getApplicationContext());
 
-                float[][] w0 = arrayCutter2D(arrayFactory.get2DFloats("w0"), pcaOutput, lstmNh);
-                float[][] w1 = arrayCutter2D(arrayFactory.get2DFloats("w1"), pcaOutput, lstmNh);
-                float[][] w2 = arrayCutter2D(arrayFactory.get2DFloats("w2"), pcaOutput, lstmNh);
-                float[][] w3 = arrayCutter2D(arrayFactory.get2DFloats("w3"), pcaOutput, lstmNh);
+                    long[] lstmTimes = new long[9];
 
-                float[][] u0 = arrayCutter2D(arrayFactory.get2DFloats("u0"), lstmNh, lstmNh);
-                float[][] u1 = arrayCutter2D(arrayFactory.get2DFloats("u1"), lstmNh, lstmNh);
-                float[][] u2 = arrayCutter2D(arrayFactory.get2DFloats("u2"), lstmNh, lstmNh);
-                float[][] u3 = arrayCutter2D(arrayFactory.get2DFloats("u3"), lstmNh, lstmNh);
+                    float[][] w0 = arrayCutter2D(arrayFactory.get2DFloats("w0"), pcaOutput, lstmNh);
+                    float[][] w1 = arrayCutter2D(arrayFactory.get2DFloats("w1"), pcaOutput, lstmNh);
+                    float[][] w2 = arrayCutter2D(arrayFactory.get2DFloats("w2"), pcaOutput, lstmNh);
+                    float[][] w3 = arrayCutter2D(arrayFactory.get2DFloats("w3"), pcaOutput, lstmNh);
 
-                float[] b0 = arrayCutter1D(arrayFactory.get1DFloats("b0"), lstmNh);
-                float[] b1 = arrayCutter1D(arrayFactory.get1DFloats("b1"), lstmNh);
-                float[] b2 = arrayCutter1D(arrayFactory.get1DFloats("b2"), lstmNh);
-                float[] b3 = arrayCutter1D(arrayFactory.get1DFloats("b3"), lstmNh);
-                float[] b4 = arrayCutter1D(arrayFactory.get1DFloats("fully_connected_b"), 7);
+                    float[][] u0 = arrayCutter2D(arrayFactory.get2DFloats("u0"), lstmNh, lstmNh);
+                    float[][] u1 = arrayCutter2D(arrayFactory.get2DFloats("u1"), lstmNh, lstmNh);
+                    float[][] u2 = arrayCutter2D(arrayFactory.get2DFloats("u2"), lstmNh, lstmNh);
+                    float[][] u3 = arrayCutter2D(arrayFactory.get2DFloats("u3"), lstmNh, lstmNh);
 
-                float[] c = arrayCutter1D(arrayFactory.get1DFloats("c"), lstmNh);
-                float[] h = arrayCutter1D(arrayFactory.get1DFloats("h"), lstmNh);
+                    float[] b0 = arrayCutter1D(arrayFactory.get1DFloats("b0"), lstmNh);
+                    float[] b1 = arrayCutter1D(arrayFactory.get1DFloats("b1"), lstmNh);
+                    float[] b2 = arrayCutter1D(arrayFactory.get1DFloats("b2"), lstmNh);
+                    float[] b3 = arrayCutter1D(arrayFactory.get1DFloats("b3"), lstmNh);
+                    float[] b4 = arrayCutter1D(arrayFactory.get1DFloats("fully_connected_b"), 7);
 
-                //fully connected
-                float[][] fullyConnected = arrayCutter2D(
-                        arrayFactory.get2DFloats("fully_connected_w"), lstmNh, 7);
+                    float[] c = arrayCutter1D(arrayFactory.get1DFloats("c"), lstmNh);
+                    float[] h = arrayCutter1D(arrayFactory.get1DFloats("h"), lstmNh);
 
-                //according to the paper this is the lstm input and it's name must be x.
-                float[] x = arrayFactory.get1DFloats("x");
+                    //fully connected
+                    float[][] fullyConnected = arrayCutter2D(
+                            arrayFactory.get2DFloats("fully_connected_w"), lstmNh, 7);
+
+                    //according to the paper this is the lstm input and it's name must be x.
+                    float[] x = arrayFactory.get1DFloats("x");
 
 
         /*
         from here the main code start to dot, cross and sum the matrices
          */
-                for (int index = 0; index < 9; index++) {
+                    for (int index = 0; index < 9; index++) {
 
             /*
             ********************************************************************
             ****************************   LSTM start  *************************
             ********************************************************************
              */
-                    long lstmStart = System.currentTimeMillis();
+                        long lstmStart = System.currentTimeMillis();
 
-                    for (int l = 0; l < lstmDepth; l++) {
-                        float[] i = tanHEval(sum3vector(
-                                crossInRange(x, w0, l * lstmWidth, (l + 1) * lstmWidth),
-                                cross(h, u0),
-                                b0)
-                        );
+                        for (int l = 0; l < lstmDepth; l++) {
+                            float[] i = tanHEval(sum3vector(
+                                    crossInRange(x, w0, l * lstmWidth, (l + 1) * lstmWidth),
+                                    cross(h, u0),
+                                    b0)
+                            );
 
-                        c = sum2Vector(
-                                dot(
-                                        sigmoid(sum3vector(
-                                                crossInRange(x, w1, l * lstmWidth,
-                                                        (l + 1) * lstmWidth),
-                                                cross(h, u1),
-                                                b1)
-                                        ),
-                                        i
-                                ),
-                                dot(
-                                        sigmoid(sum3vector(
-                                                crossInRange(x, w2, l * lstmWidth,
-                                                        (l + 1) * lstmWidth),
-                                                cross(h, u2),
-                                                b2)
-                                        ),
-                                        c
-                                )
-                        );
-                        h = dot(
-                                sigmoid(
-                                        sum3vector(
-                                                crossInRange(x, w3, l * lstmWidth,
-                                                        (l + 1) * lstmWidth),
-                                                cross(h, u3),
-                                                b3)
-                                ),
-                                tanHEval(c)
-                        );
+                            c = sum2Vector(
+                                    dot(
+                                            sigmoid(sum3vector(
+                                                    crossInRange(x, w1, l * lstmWidth,
+                                                            (l + 1) * lstmWidth),
+                                                    cross(h, u1),
+                                                    b1)
+                                            ),
+                                            i
+                                    ),
+                                    dot(
+                                            sigmoid(sum3vector(
+                                                    crossInRange(x, w2, l * lstmWidth,
+                                                            (l + 1) * lstmWidth),
+                                                    cross(h, u2),
+                                                    b2)
+                                            ),
+                                            c
+                                    )
+                            );
+                            h = dot(
+                                    sigmoid(
+                                            sum3vector(
+                                                    crossInRange(x, w3, l * lstmWidth,
+                                                            (l + 1) * lstmWidth),
+                                                    cross(h, u3),
+                                                    b3)
+                                    ),
+                                    tanHEval(c)
+                            );
+
+                        }
+
+                        sum2Vector(cross(h, fullyConnected), b4);//it's the fully connected layer
+
+                        long lstmEnd = System.currentTimeMillis();
+                        lstmTimes[index] = lstmEnd - lstmStart;
 
                     }
+                    Log.d("pof.Hashemi", "LSTM depth is:" + lstmDepth);
+                    for (int i = 0; i < 9; i++) {
+                        Log.d("prof.Hashemi", "lstm time is:" + lstmTimes[i]);
+                    }
 
-                    sum2Vector(cross(h, fullyConnected), b4);//it's the fully connected layer
+                    Arrays.sort(lstmTimes);
+                    String massage = String.format("lstm time is:%s", String.valueOf(lstmTimes[4]));
+                    mTextView.setText(massage);
 
-                    long lstmEnd = System.currentTimeMillis();
-                    lstmTimes[index] = lstmEnd - lstmStart;
-
+                    Log.w("***", "median of lstm is:" + lstmTimes[4]);
                 }
-
-                for (int i = 0; i < 9; i++) {
-                    Log.d("prof.Hashemi", "lstm time is:" + lstmTimes[i]);
-                }
-
-                Arrays.sort(lstmTimes);
-                String massage = String.format("lstm time is:%s", String.valueOf(lstmTimes[4]));
-                mTextView.setText(massage);
-
-                Log.w("***", "median of lstm is:" + lstmTimes[4]);
 
             }
         });
