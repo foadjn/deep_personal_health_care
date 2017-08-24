@@ -89,69 +89,80 @@ public class MainActivity extends Activity {
                     mActivityManager.killBackgroundProcesses(packageInfo.packageName);
                 }
 
-                final int rawDownSample = 1;
-                final int waveletDownSample = 1;
-                final int waveletOmit = 0;
+                final int[] allRawDownSample = new int[]{1, 2};
+                final int[] allWaveletDownSample = new int[]{1, 2};
+                final int[] allWaveletOmit = new int[]{0, 1, 2};
 
-                ArraysFactory arrayFactory = new ArraysFactory(getApplicationContext());
 
-                long[] waveletTimes = new long[9];
+                for (int waveletDownSample : allWaveletDownSample) {
+                    for (int waveletOmit : allWaveletOmit) {
+                        for (int rawDownSample : allRawDownSample) {
+                            ArraysFactory arrayFactory = new ArraysFactory(getApplicationContext());
 
-                float[] firstRawInput = arrayFactory.get1DFloats("first_raw_input");
-                float[] firstFeature = arrayFactory.get1DFloats("first_feature");
-                float[] secondRawInput = arrayFactory.get1DFloats("second_raw_input");
-                float[] secondFeature = arrayFactory.get1DFloats("second_feature");
+                            long[] waveletTimes = new long[9];
 
-                float[] highPassFilter = arrayFactory.get1DFloats("high_pass_filter");
-                float[] lowPassFilter = arrayFactory.get1DFloats("low_pass_filter");
+                            float[] firstRawInput = arrayFactory.get1DFloats("first_raw_input");
+                            float[] firstFeature = arrayFactory.get1DFloats("first_feature");
+                            float[] secondRawInput = arrayFactory.get1DFloats("second_raw_input");
+                            float[] secondFeature = arrayFactory.get1DFloats("second_feature");
+
+                            float[] highPassFilter = arrayFactory.get1DFloats("high_pass_filter");
+                            float[] lowPassFilter = arrayFactory.get1DFloats("low_pass_filter");
 
 
         /*
         from here the main code start to dot, cross and sum the matrices
          */
-                for (int index = 0; index < 9; index++) {
+                            for (int index = 0; index < 9; index++) {
 
             /*
             ********************************************************************
             ***************************   wavelet start  ***********************
             ********************************************************************
              */
-                    long waveletStartTime = System.currentTimeMillis();
+                                long waveletStartTime = System.currentTimeMillis();
 
-                    Wavelet wavelet = new Wavelet();
+                                Wavelet wavelet = new Wavelet();
 
-                    float[] wavyInput1 = wavelet.wavelet(waveletOmit,
-                            downSample(firstRawInput, waveletDownSample),
-                            highPassFilter,
-                            lowPassFilter);
+                                float[] wavyInput1 = wavelet.wavelet(waveletOmit,
+                                        downSample(firstRawInput, waveletDownSample),
+                                        highPassFilter,
+                                        lowPassFilter);
 
-                    float[] wavyInput2 = wavelet.wavelet(waveletOmit,
-                            downSample(secondRawInput, waveletDownSample),
-                            highPassFilter,
-                            lowPassFilter);
+                                float[] wavyInput2 = wavelet.wavelet(waveletOmit,
+                                        downSample(secondRawInput, waveletDownSample),
+                                        highPassFilter,
+                                        lowPassFilter);
 
-                    appender(
-                            downSample(firstRawInput, rawDownSample),
-                            wavyInput1,
-                            firstFeature,
-                            downSample(secondRawInput, rawDownSample),
-                            wavyInput2,
-                            secondFeature);
+                                appender(
+                                        downSample(firstRawInput, rawDownSample),
+                                        wavyInput1,
+                                        firstFeature,
+                                        downSample(secondRawInput, rawDownSample),
+                                        wavyInput2,
+                                        secondFeature);
 
-                    long waveletEndTime = System.currentTimeMillis();
-                    long totalWaveletTime = waveletEndTime - waveletStartTime;
-                    waveletTimes[index] = totalWaveletTime;
+                                long waveletEndTime = System.currentTimeMillis();
+                                long totalWaveletTime = waveletEndTime - waveletStartTime;
+                                waveletTimes[index] = totalWaveletTime;
+                            }
 
+                            Log.d("prof.hashemi", "wavelet down sample is: " + waveletDownSample);
+                            Log.d("prof.hashemi", "wavelet omit is: " + waveletOmit);
+                            Log.d("prof.hashemi", "raw down sample is: " + rawDownSample);
 
-                    for (int i = 0; i < 9; i++) {
-                        Log.d("prof.Hashemi", "wavelet time is: " + waveletTimes[i]);
+                            for (int i = 0; i < 9; i++) {
+                                Log.d("prof.Hashemi", "wavelet time is: " + waveletTimes[i]);
+                            }
+
+                            Arrays.sort(waveletTimes);
+                            String massage = "wavelet time is: " + waveletTimes[4];
+                            mTextView.setText(massage);
+
+                            Log.w("***", "wavelet median time is: " + waveletTimes[4]);
+
+                        }
                     }
-
-                    Arrays.sort(waveletTimes);
-                    String massage = "wavelet time is: " + waveletTimes[4];
-                    mTextView.setText(massage);
-
-                    Log.w("***", "wavelet time is: " + waveletTimes[4]);
                 }
             }
         });
