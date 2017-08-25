@@ -130,6 +130,7 @@ public class MainActivity extends Activity {
                 final int[] allPcaOutput = new int[]{600, 500, 400, 300, 200, 100};
                 final int[] allPcaInput = new int[]{1026, 776, 774, 524, 646, 396,
                         778, 528, 650, 400, 584, 334};
+
                 for (int pcaInput : allPcaInput) {
                     for (int pcaOutput : allPcaOutput) {
 
@@ -149,16 +150,16 @@ public class MainActivity extends Activity {
                         float[][] pca = new float[pcaInput][pcaOutput];
                         pca = randomInit2D(pca);
 
-        /*
-        from here the main code start to dot, cross and sum the matrices
-         */
+                        /*
+                        from here the main code start to dot, cross and sum the matrices
+                         */
                         for (int index = 0; index < 9; index++) {
 
-            /*
-            ********************************************************************
-            ***************************   wavelet start  ***********************
-            ********************************************************************
-             */
+                            /*
+                            ********************************************************************
+                            ***************************   wavelet start  ***********************
+                            ********************************************************************
+                             */
                             Wavelet wavelet = new Wavelet();
 
                             float[] wavyInput1 = wavelet.wavelet(waveletOmit,
@@ -179,11 +180,11 @@ public class MainActivity extends Activity {
                                     wavyInput2,
                                     secondFeature);
 
-            /*
-            ********************************************************************
-            *****************************   pca start  *************************
-            ********************************************************************
-             */
+                            /*
+                            ********************************************************************
+                            *****************************   pca start  *************************
+                            ********************************************************************
+                             */
 
                             long crossStartTime = System.currentTimeMillis();
 
