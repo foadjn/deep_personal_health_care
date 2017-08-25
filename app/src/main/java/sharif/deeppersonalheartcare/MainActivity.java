@@ -111,17 +111,8 @@ public class MainActivity extends Activity {
             @Override
             public void onLayoutInflated(WatchViewStub stub) {
                 mTextView = stub.findViewById(R.id.text);
-                List<ApplicationInfo> packages;
-                PackageManager pm = getPackageManager();
-                //get a list of installed apps.
-                packages = pm.getInstalledApplications(0);
 
-                ActivityManager mActivityManager = (ActivityManager) getApplicationContext()
-                        .getSystemService(Context.ACTIVITY_SERVICE);
-
-                for (ApplicationInfo packageInfo : packages) {
-                    mActivityManager.killBackgroundProcesses(packageInfo.packageName);
-                }
+                ArraysFactory arrayFactory = new ArraysFactory(getApplicationContext());
 
                 final int rawDownSample = 1;
                 final int waveletDownSample = 1;
@@ -134,7 +125,18 @@ public class MainActivity extends Activity {
                 for (int pcaInput : allPcaInput) {
                     for (int pcaOutput : allPcaOutput) {
 
-                        ArraysFactory arrayFactory = new ArraysFactory(getApplicationContext());
+                        List<ApplicationInfo> packages;
+                        PackageManager pm = getPackageManager();
+                        //get a list of installed apps.
+                        packages = pm.getInstalledApplications(0);
+
+                        ActivityManager mActivityManager = (ActivityManager) getApplicationContext()
+                                .getSystemService(Context.ACTIVITY_SERVICE);
+
+                        for (ApplicationInfo packageInfo : packages) {
+                            mActivityManager.killBackgroundProcesses(packageInfo.packageName);
+                        }
+
 
                         long[] pcaTimes = new long[9];
 
@@ -194,9 +196,9 @@ public class MainActivity extends Activity {
                             long pcaTotalTime = crossEndTime - crossStartTime;
                             pcaTimes[index] = pcaTotalTime;
 
-                            try{
+                            try {
                                 Thread.sleep(60000);
-                            }catch (Exception e){
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
 
