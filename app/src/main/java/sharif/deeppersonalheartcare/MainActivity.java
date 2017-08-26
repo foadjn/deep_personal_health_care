@@ -118,9 +118,9 @@ public class MainActivity extends Activity {
                 final int waveletDownSample = 1;
                 final int waveletOmit = 0;
 
-                final int[] allPcaOutput = new int[]{600, 500, 400, 300, 200, 100};
                 final int[] allPcaInput = new int[]{1026, 776, 774, 524, 646, 396,
                         778, 528, 650, 400, 584, 334};
+                final int[] allPcaOutput = new int[]{600, 500, 400, 300, 200, 100};
 
                 for (int pcaInput : allPcaInput) {
                     for (int pcaOutput : allPcaOutput) {
@@ -190,7 +190,9 @@ public class MainActivity extends Activity {
 
                             long crossStartTime = System.currentTimeMillis();
 
-                            cross(x1, pca);
+                            float[][] _2dOfX1 = makeX12D(x1);
+                            float[][] _2dOfPca = makePca2D(pca);
+                            Strassen.strassen(_2dOfX1, pca);
 
                             long crossEndTime = System.currentTimeMillis();
                             long pcaTotalTime = crossEndTime - crossStartTime;
@@ -220,5 +222,22 @@ public class MainActivity extends Activity {
                 }
             }
         });
+    }
+
+    private float[][] makePca2D(float[][] pca) {
+        float[][] result = new float[pca.length][pca.length];
+        for(int i =0 ; i < pca[0].length; i++){
+            result[i] = pca[i];
+
+        }
+        return result;
+    }
+
+    private float[][] makeX12D(float[] x1) {
+
+        float[][] result = new float[x1.length][x1.length];
+        result[0] = x1;
+        return result;
+
     }
 }
