@@ -144,24 +144,6 @@ public class MainActivity extends Activity {
         return res;
     }
 
-    private float[][] matrixAppender(float[][] input){
-
-        float[][] output = new float[60][60];
-        for(int i = 0; i < 30; i++){
-            System.arraycopy(input[i], 0, output[i], 0, 30);
-        }
-
-        int k = 30;
-
-
-        for(int i = 0; i < 30; i++, k++){
-            for(int j = 0, l = 30; j < 30; j++, l++){
-                output[k][l] = input[i][j];
-            }
-        }
-        return output;
-    }
-
     private float[] newCross(float[] in1, float[][] in2) {
 
         int n = in2.length;//600
@@ -202,7 +184,7 @@ public class MainActivity extends Activity {
                 for (int lstmDepth : allLSTMDepth) {
 
 
-                    final int pcaOutput = 420;
+                    final int pcaOutput = 480;
                     final int lstmWidth = pcaOutput / lstmDepth;
                     final int lstmNh = 30;
 
@@ -215,10 +197,10 @@ public class MainActivity extends Activity {
                     float[][] w2 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("w2"), pcaOutput, lstmNh));
                     float[][] w3 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("w3"), pcaOutput, lstmNh));
 
-                    float[][] u0 = transposeMatrix(arrayCutter2D(matrixAppender(arrayFactory.get2DFloats("u0")), lstmNh, lstmNh));
-                    float[][] u1 = transposeMatrix(arrayCutter2D(matrixAppender(arrayFactory.get2DFloats("u1")), lstmNh, lstmNh));
-                    float[][] u2 = transposeMatrix(arrayCutter2D(matrixAppender(arrayFactory.get2DFloats("u2")), lstmNh, lstmNh));
-                    float[][] u3 = transposeMatrix(arrayCutter2D(matrixAppender(arrayFactory.get2DFloats("u3")), lstmNh, lstmNh));
+                    float[][] u0 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("u0"), lstmNh, lstmNh));
+                    float[][] u1 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("u1"), lstmNh, lstmNh));
+                    float[][] u2 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("u2"), lstmNh, lstmNh));
+                    float[][] u3 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("u3"), lstmNh, lstmNh));
 
                     float[] b0 = arrayCutter1D(arrayFactory.get1DFloats("b0"), lstmNh);
                     float[] b1 = arrayCutter1D(arrayFactory.get1DFloats("b1"), lstmNh);
