@@ -29,9 +29,9 @@ public class MainActivity extends Activity {
 
         float[] res = new float[n];
 
-        for (int j = 0; j < n; j++) {
-            for (int i = 0; i < m; i++) {
-                res[j] += in2[i][j] * in1[i];
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                res[i] += in2[j][i] * in1[j];
             }
         }
 
@@ -56,7 +56,7 @@ public class MainActivity extends Activity {
     }
 
     private float[] appender(float[] x1, float[] x2, float[] x3, float[] x4, float[] x5,
-                                    float[] x6) {
+                             float[] x6) {
         float[] output =
                 new float[x1.length + x2.length + x3.length + x4.length + x5.length + x6.length];
 
@@ -118,7 +118,7 @@ public class MainActivity extends Activity {
                 final int waveletDownSample = 1;
                 final int waveletOmit = 0;
 
-                final int[] allPcaInput = new int[]{1026};
+                final int[] allPcaInput = new int[]{600};
                 final int[] allPcaOutput = new int[]{1026};
 
                 for (int pcaInput : allPcaInput) {
@@ -137,7 +137,7 @@ public class MainActivity extends Activity {
                         }
 
 
-                        long[] pcaTimes = new long[9];
+                        long[] pcaTimes = new long[5];
 
                         float[] firstRawInput = arrayFactory.get1DFloats("first_raw_input");
                         float[] firstFeature = arrayFactory.get1DFloats("first_feature");
@@ -154,7 +154,7 @@ public class MainActivity extends Activity {
                         /*
                         from here the main code start to dot, cross and sum the matrices
                          */
-                        for (int index = 0; index < 9; index++) {
+                        for (int index = 0; index < 5; index++) {
 
                             /*
                             ********************************************************************
@@ -188,17 +188,16 @@ public class MainActivity extends Activity {
                              */
 
                             long crossStartTime = System.currentTimeMillis();
-
-                            float[][] _2dOfX1 = makeX12D(x1);
-                            float[][] multiPlyResult = Strassen.strassen(_2dOfX1, pca);
-                            getFinalResult(multiPlyResult);
+                            newCross(x1, pca);
 
                             long crossEndTime = System.currentTimeMillis();
                             long pcaTotalTime = crossEndTime - crossStartTime;
                             pcaTimes[index] = pcaTotalTime;
+                            Log.d("****", pcaTotalTime + "");
 
                             try {
-                                Thread.sleep(60000);
+                                if (index != 4)
+                                    Thread.sleep(60000);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -207,16 +206,16 @@ public class MainActivity extends Activity {
 
                         Log.d("prof.Hashemi", "pca input dim is:" + pcaInput);
                         Log.d("prof.Hashemi", "pca output dim is:" + pcaOutput);
-                        for (int i = 0; i < 9; i++) {
+                        for (int i = 0; i < 5; i++) {
                             Log.d("prof.Hashemi", "pca time is:" + pcaTimes[i]);
                         }
 
                         Arrays.sort(pcaTimes);
 
-                        String massage = "pca time is:" + pcaTimes[4];
+                        String massage = "pca time is:" + pcaTimes[2];
                         mTextView.setText(massage);
 
-                        Log.w("***", "median of pca is:" + pcaTimes[4]);
+                        Log.w("***", "median of pca is:" + pcaTimes[2]);
                     }
                 }
             }
@@ -225,18 +224,19 @@ public class MainActivity extends Activity {
         });
     }
 
-    private float[][] makeX12D(float[] x1) {
+    private float[] newCross(float[] in1, float[][] in2) {
 
-        float[][] result = new float[x1.length][x1.length];
-        result[0] = x1;
-        return result;
+        int n = in2.length;//600
+        int m = in2[0].length;//1026
 
+        float[] res = new float[n];
+
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                res[i] += in2[i][j] * in1[j];
+            }
+        }
+        return res;
     }
-
-    private float[] getFinalResult(float[][] multiPlyResult) {
-        float[] result = new float[600];
-        return result;
-    }
-
 
 }
