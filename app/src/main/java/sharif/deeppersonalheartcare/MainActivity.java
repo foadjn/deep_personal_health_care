@@ -22,7 +22,7 @@ public class MainActivity extends Activity {
     static Random random = new Random();
     private TextView mTextView;
 
-    private static float[] cross(float[] in1, float[][] in2) {
+    private float[] cross(float[] in1, float[][] in2) {
 
         int m = in2.length;
         int n = in2[0].length;
@@ -38,7 +38,7 @@ public class MainActivity extends Activity {
         return res;
     }
 
-    private static float[][] randomInit2D(float[][] in) {
+    private float[][] randomInit2D(float[][] in) {
 
         int dim1 = in.length;
         int dim2 = in[1].length;
@@ -55,7 +55,7 @@ public class MainActivity extends Activity {
         return in;
     }
 
-    private static float[] appender(float[] x1, float[] x2, float[] x3, float[] x4, float[] x5,
+    private float[] appender(float[] x1, float[] x2, float[] x3, float[] x4, float[] x5,
                                     float[] x6) {
         float[] output =
                 new float[x1.length + x2.length + x3.length + x4.length + x5.length + x6.length];
@@ -88,7 +88,7 @@ public class MainActivity extends Activity {
         return output;
     }
 
-    private static float[] downSample(float[] x, int rate) {
+    private float[] downSample(float[] x, int rate) {
 
         if (rate == 1)
             return x;
@@ -118,9 +118,8 @@ public class MainActivity extends Activity {
                 final int waveletDownSample = 1;
                 final int waveletOmit = 0;
 
-                final int[] allPcaInput = new int[]{1026, 776, 774, 524, 646, 396,
-                        778, 528, 650, 400, 584, 334};
-                final int[] allPcaOutput = new int[]{600, 500, 400, 300, 200, 100};
+                final int[] allPcaInput = new int[]{1026};
+                final int[] allPcaOutput = new int[]{1026};
 
                 for (int pcaInput : allPcaInput) {
                     for (int pcaOutput : allPcaOutput) {
@@ -191,8 +190,8 @@ public class MainActivity extends Activity {
                             long crossStartTime = System.currentTimeMillis();
 
                             float[][] _2dOfX1 = makeX12D(x1);
-                            float[][] _2dOfPca = makePca2D(pca);
-                            Strassen.strassen(_2dOfX1, pca);
+                            float[][] multiPlyResult = Strassen.strassen(_2dOfX1, pca);
+                            getFinalResult(multiPlyResult);
 
                             long crossEndTime = System.currentTimeMillis();
                             long pcaTotalTime = crossEndTime - crossStartTime;
@@ -221,16 +220,9 @@ public class MainActivity extends Activity {
                     }
                 }
             }
+
+
         });
-    }
-
-    private float[][] makePca2D(float[][] pca) {
-        float[][] result = new float[pca.length][pca.length];
-        for(int i =0 ; i < pca[0].length; i++){
-            result[i] = pca[i];
-
-        }
-        return result;
     }
 
     private float[][] makeX12D(float[] x1) {
@@ -240,4 +232,11 @@ public class MainActivity extends Activity {
         return result;
 
     }
+
+    private float[] getFinalResult(float[][] multiPlyResult) {
+        float[] result = new float[600];
+        return result;
+    }
+
+
 }
