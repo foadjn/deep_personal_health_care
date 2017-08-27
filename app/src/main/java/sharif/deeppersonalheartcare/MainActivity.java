@@ -114,6 +114,54 @@ public class MainActivity extends Activity {
         return output;
     }
 
+    public static float[][] transposeMatrix(float[][] m) {
+
+        int rowNumber = m.length;
+        int columnNumber = m[0].length;
+
+        float[][] temp = new float[columnNumber][rowNumber];
+
+        for (int i = 0; i < rowNumber; i++) {
+            for (int j = 0; j < columnNumber; j++) {
+                temp[j][i] = m[i][j];
+            }
+        }
+
+        return temp;
+    }
+
+    private static float[] newCrossInRange(float[] in1, float[][] in2, int j1, int j2) {
+
+        int n = in2.length;
+
+        float[] res = new float[n];
+
+        for (int i = 0; i < n; i++) {
+            for (int j = j1; j < j2; j++) {
+                res[i] += in2[i][j] * in1[j];
+            }
+        }
+        return res;
+    }
+
+    private float[][] matrixAppender(float[][] input){
+
+        float[][] output = new float[60][60];
+        for(int i = 0; i < 30; i++){
+            System.arraycopy(input[i], 0, output[i], 0, 30);
+        }
+
+        int k = 30;
+
+
+        for(int i = 0; i < 30; i++, k++){
+            for(int j = 0, l = 30; j < 30; j++, l++){
+                output[k][l] = input[i][j];
+            }
+        }
+        return output;
+    }
+
     private float[] newCross(float[] in1, float[][] in2) {
 
         int n = in2.length;//600
@@ -150,11 +198,11 @@ public class MainActivity extends Activity {
                 for (ApplicationInfo packageInfo : packages) {
                     mActivityManager.killBackgroundProcesses(packageInfo.packageName);
                 }
-                int[] allLSTMDepth = new int[]{1,2,4,5,10,20};
-                for(int lstmDepth : allLSTMDepth) {
+                int[] allLSTMDepth = new int[]{4, 5, 6};
+                for (int lstmDepth : allLSTMDepth) {
 
 
-                    final int pcaOutput = 600;
+                    final int pcaOutput = 420;
                     final int lstmWidth = pcaOutput / lstmDepth;
                     final int lstmNh = 30;
 
@@ -162,15 +210,15 @@ public class MainActivity extends Activity {
 
                     long[] lstmTimes = new long[9];
 
-                    float[][] w0 = arrayCutter2D(arrayFactory.get2DFloats("w0"), pcaOutput, lstmNh);
-                    float[][] w1 = arrayCutter2D(arrayFactory.get2DFloats("w1"), pcaOutput, lstmNh);
-                    float[][] w2 = arrayCutter2D(arrayFactory.get2DFloats("w2"), pcaOutput, lstmNh);
-                    float[][] w3 = arrayCutter2D(arrayFactory.get2DFloats("w3"), pcaOutput, lstmNh);
+                    float[][] w0 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("w0"), pcaOutput, lstmNh));
+                    float[][] w1 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("w1"), pcaOutput, lstmNh));
+                    float[][] w2 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("w2"), pcaOutput, lstmNh));
+                    float[][] w3 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("w3"), pcaOutput, lstmNh));
 
-                    float[][] u0 = arrayCutter2D(arrayFactory.get2DFloats("u0"), lstmNh, lstmNh);
-                    float[][] u1 = arrayCutter2D(arrayFactory.get2DFloats("u1"), lstmNh, lstmNh);
-                    float[][] u2 = arrayCutter2D(arrayFactory.get2DFloats("u2"), lstmNh, lstmNh);
-                    float[][] u3 = arrayCutter2D(arrayFactory.get2DFloats("u3"), lstmNh, lstmNh);
+                    float[][] u0 = transposeMatrix(arrayCutter2D(matrixAppender(arrayFactory.get2DFloats("u0")), lstmNh, lstmNh));
+                    float[][] u1 = transposeMatrix(arrayCutter2D(matrixAppender(arrayFactory.get2DFloats("u1")), lstmNh, lstmNh));
+                    float[][] u2 = transposeMatrix(arrayCutter2D(matrixAppender(arrayFactory.get2DFloats("u2")), lstmNh, lstmNh));
+                    float[][] u3 = transposeMatrix(arrayCutter2D(matrixAppender(arrayFactory.get2DFloats("u3")), lstmNh, lstmNh));
 
                     float[] b0 = arrayCutter1D(arrayFactory.get1DFloats("b0"), lstmNh);
                     float[] b1 = arrayCutter1D(arrayFactory.get1DFloats("b1"), lstmNh);
@@ -182,11 +230,13 @@ public class MainActivity extends Activity {
                     float[] h = arrayCutter1D(arrayFactory.get1DFloats("h"), lstmNh);
 
                     //fully connected
-                    float[][] fullyConnected = arrayCutter2D(
-                            arrayFactory.get2DFloats("fully_connected_w"), lstmNh, 7);
+                    float[][] fullyConnected = transposeMatrix(arrayCutter2D(
+                            arrayFactory.get2DFloats("fully_connected_w"), lstmNh, 7));
 
                     //according to the paper this is the lstm input and it's name must be x.
-                    float[] x = arrayFactory.get1DFloats("x");
+                    float[] x = arrayCutter1D(arrayFactory.get1DFloats("x"), pcaOutput);
+
+
 
 
         /*
@@ -203,26 +253,26 @@ public class MainActivity extends Activity {
 
                         for (int l = 0; l < lstmDepth; l++) {
                             float[] i = tanHEval(sum3vector(
-                                    crossInRange(x, w0, l * lstmWidth, (l + 1) * lstmWidth),
-                                    cross(h, u0),
+                                    newCrossInRange(x, w0, l * lstmWidth, (l + 1) * lstmWidth),
+                                    newCross(h, u0),
                                     b0)
                             );
 
                             c = sum2Vector(
                                     dot(
                                             sigmoid(sum3vector(
-                                                    crossInRange(x, w1, l * lstmWidth,
+                                                    newCrossInRange(x, w1, l * lstmWidth,
                                                             (l + 1) * lstmWidth),
-                                                    cross(h, u1),
+                                                    newCross(h, u1),
                                                     b1)
                                             ),
                                             i
                                     ),
                                     dot(
                                             sigmoid(sum3vector(
-                                                    crossInRange(x, w2, l * lstmWidth,
+                                                    newCrossInRange(x, w2, l * lstmWidth,
                                                             (l + 1) * lstmWidth),
-                                                    cross(h, u2),
+                                                    newCross(h, u2),
                                                     b2)
                                             ),
                                             c
@@ -231,9 +281,9 @@ public class MainActivity extends Activity {
                             h = dot(
                                     sigmoid(
                                             sum3vector(
-                                                    crossInRange(x, w3, l * lstmWidth,
+                                                    newCrossInRange(x, w3, l * lstmWidth,
                                                             (l + 1) * lstmWidth),
-                                                    cross(h, u3),
+                                                    newCross(h, u3),
                                                     b3)
                                     ),
                                     tanHEval(c)
@@ -241,7 +291,7 @@ public class MainActivity extends Activity {
 
                         }
 
-                        sum2Vector(cross(h, fullyConnected), b4);//it's the fully connected layer
+                        sum2Vector(newCross(h, fullyConnected), b4);//it's the fully connected layer
 
                         long lstmEnd = System.currentTimeMillis();
                         lstmTimes[index] = lstmEnd - lstmStart;
