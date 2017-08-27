@@ -98,11 +98,11 @@ public class MainActivity extends Activity {
         return in;
     }
 
-    private static float[][] arrayCutter2D(float[][] input, int y, int x) {
-        float[][] output = new float[y][x];
+    private static float[][] arrayCutter2D(float[][] input, int x, int y) {
+        float[][] output = new float[x][y];
 
         for (int i = 0; i < y; i++) {
-            System.arraycopy(input[i], 0, output[i], 0, x);
+            System.arraycopy(input[i], 0, output[i], 0, y);
         }
         return output;
     }
@@ -184,9 +184,9 @@ public class MainActivity extends Activity {
                 for (int lstmDepth : allLSTMDepth) {
 
 
-                    final int pcaOutput = 480;
+                    final int pcaOutput = 420;
                     final int lstmWidth = pcaOutput / lstmDepth;
-                    final int lstmNh = 30;
+                    final int lstmNh = 60;
 
                     ArraysFactory arrayFactory = new ArraysFactory(getApplicationContext());
 
