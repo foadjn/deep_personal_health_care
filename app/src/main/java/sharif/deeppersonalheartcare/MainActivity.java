@@ -114,6 +114,21 @@ public class MainActivity extends Activity {
         return output;
     }
 
+    private float[] newCross(float[] in1, float[][] in2) {
+
+        int n = in2.length;//600
+        int m = in2[0].length;//1026
+
+        float[] res = new float[n];
+
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                res[i] += in2[i][j] * in1[j];
+            }
+        }
+        return res;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
