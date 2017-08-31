@@ -151,33 +151,34 @@ public class MainActivity extends Activity {
         return pcaInput;
     }
 
-    private static float[] appender(float[] x1, float[] x2, float[] x3, float[] x4, float[] x5,
-                                    float[] x6) {
-        float[] output =
-                new float[x1.length + x2.length + x3.length + x4.length + x5.length + x6.length];
+    private static float[] appender(float[] in1, float[] in2, float[] in3, float[] in4,
+                                     float[] in5, float[] in6) {
+
+        float[] output = new float[in1.length + in2.length + in3.length +
+                in4.length + in5.length + in6.length];
 
         int index = 0;
-        for (float temp : x1) {
+        for (float temp : in1) {
             output[index] = temp;
             index++;
         }
-        for (float temp : x2) {
+        for (float temp : in2) {
             output[index] = temp;
             index++;
         }
-        for (float temp : x3) {
+        for (float temp : in3) {
             output[index] = temp;
             index++;
         }
-        for (float temp : x4) {
+        for (float temp : in4) {
             output[index] = temp;
             index++;
         }
-        for (float temp : x5) {
+        for (float temp : in5) {
             output[index] = temp;
             index++;
         }
-        for (float temp : x6) {
+        for (float temp : in6) {
             output[index] = temp;
             index++;
         }
