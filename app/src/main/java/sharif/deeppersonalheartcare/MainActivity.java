@@ -34,36 +34,6 @@ public class MainActivity extends Activity {
         return in1;
     }
 
-    private static float[] crossInRange(float[] in1, float[][] in2, int i1, int i2) {
-
-        int n = in2[0].length;
-
-        float[] res = new float[n];
-
-        for (int j = 0; j < n; j++) {
-            for (int i = i1; i < i2; i++) {
-                res[j] += in2[i][j] * in1[i];
-            }
-        }
-        return res;
-    }
-
-    private static float[] cross(float[] in1, float[][] in2) {
-
-        int m = in2.length;
-        int n = in2[0].length;
-
-        float[] res = new float[n];
-
-        for (int j = 0; j < n; j++) {
-            for (int i = 0; i < m; i++) {
-                res[j] += in2[i][j] * in1[i];
-            }
-        }
-
-        return res;
-    }
-
     private static float[] sum3vector(float[] in1, float[] in2, float[] in3) {
 
         for (int i = 0; i < in1.length; i++) {
@@ -133,7 +103,6 @@ public class MainActivity extends Activity {
     private static float[] newCrossInRange(float[] in1, float[][] in2, int j1, int j2) {
 
         int n = in2.length;
-
         float[] res = new float[n];
 
         for (int i = 0; i < n; i++) {
@@ -159,6 +128,7 @@ public class MainActivity extends Activity {
         return res;
     }
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -170,7 +140,7 @@ public class MainActivity extends Activity {
                 mTextView = stub.findViewById(R.id.text);
 
                 int[] allNh = new int[]{30, 20, 40, 10};
-                int[] allLSTMDepth = new int[]{4, 20};
+                int[] allLSTMDepth = new int[]{1, 2, 4, 5, 10, 20};
                 int[] allPcaOutputDim = new int[]{600, 500, 400, 300, 200, 100};
 
                 for (int lstmNh : allNh) {
@@ -183,21 +153,35 @@ public class MainActivity extends Activity {
 
                             long[] lstmTimes = new long[9];
 
-                            float[][] w0 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("w0"), pcaOutput, lstmNh));
-                            float[][] w1 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("w1"), pcaOutput, lstmNh));
-                            float[][] w2 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("w2"), pcaOutput, lstmNh));
-                            float[][] w3 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("w3"), pcaOutput, lstmNh));
+                            float[][] w0 = transposeMatrix(arrayCutter2D(
+                                    arrayFactory.get2DFloats("w0"), pcaOutput, lstmNh));
 
-                            float[][] u0 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("u0"), lstmNh, lstmNh));
-                            float[][] u1 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("u1"), lstmNh, lstmNh));
-                            float[][] u2 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("u2"), lstmNh, lstmNh));
-                            float[][] u3 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("u3"), lstmNh, lstmNh));
+                            float[][] w1 = transposeMatrix(arrayCutter2D(
+                                    arrayFactory.get2DFloats("w1"), pcaOutput, lstmNh));
+
+                            float[][] w2 = transposeMatrix(arrayCutter2D(
+                                    arrayFactory.get2DFloats("w2"), pcaOutput, lstmNh));
+
+                            float[][] w3 = transposeMatrix(arrayCutter2D(
+                                    arrayFactory.get2DFloats("w3"), pcaOutput, lstmNh));
+
+                            float[][] u0 = transposeMatrix(arrayCutter2D(
+                                    arrayFactory.get2DFloats("u0"), lstmNh, lstmNh));
+
+                            float[][] u1 = transposeMatrix(arrayCutter2D(
+                                    arrayFactory.get2DFloats("u1"), lstmNh, lstmNh));
+
+                            float[][] u2 = transposeMatrix(arrayCutter2D(
+                                    arrayFactory.get2DFloats("u2"), lstmNh, lstmNh));
+
+                            float[][] u3 = transposeMatrix(arrayCutter2D(
+                                    arrayFactory.get2DFloats("u3"), lstmNh, lstmNh));
 
                             float[] b0 = arrayCutter1D(arrayFactory.get1DFloats("b0"), lstmNh);
                             float[] b1 = arrayCutter1D(arrayFactory.get1DFloats("b1"), lstmNh);
                             float[] b2 = arrayCutter1D(arrayFactory.get1DFloats("b2"), lstmNh);
                             float[] b3 = arrayCutter1D(arrayFactory.get1DFloats("b3"), lstmNh);
-                            float[] b4 = arrayCutter1D(arrayFactory.get1DFloats("fully_connected_b"), 7);
+                            float[] fullyConnectedB = arrayCutter1D(arrayFactory.get1DFloats("fully_connected_b"), 7);
 
                             float[] c = arrayCutter1D(arrayFactory.get1DFloats("c"), lstmNh);
                             float[] h = arrayCutter1D(arrayFactory.get1DFloats("h"), lstmNh);
@@ -235,21 +219,20 @@ public class MainActivity extends Activity {
                                 long lstmStart = System.currentTimeMillis();
 
                                 for (int l = 0; l < lstmDepth; l++) {
-                                    float[] i = tanHEval(sum3vector(
-                                            newCrossInRange(x, w0, l * lstmWidth, (l + 1) * lstmWidth),
-                                            newCross(h, u0),
-                                            b0)
-                                    );
+
 
                                     c = sum2Vector(
                                             dot(
                                                     sigmoid(sum3vector(
-                                                            newCrossInRange(x, w1, l * lstmWidth,
-                                                                    (l + 1) * lstmWidth),
+                                                            newCrossInRange(x, w1, l * lstmWidth, (l + 1) * lstmWidth),
                                                             newCross(h, u1),
                                                             b1)
                                                     ),
-                                                    i
+                                                    tanHEval(sum3vector(
+                                                            newCrossInRange(x, w0, l * lstmWidth, (l + 1) * lstmWidth),
+                                                            newCross(h, u0),
+                                                            b0)
+                                                    )
                                             ),
                                             dot(
                                                     sigmoid(sum3vector(
@@ -274,7 +257,8 @@ public class MainActivity extends Activity {
 
                                 }
 
-                                sum2Vector(newCross(h, fullyConnected), b4);//it's the fully connected layer
+                                //it's the fully connected layer
+                                sum2Vector(newCross(h, fullyConnected), fullyConnectedB);
 
                                 long lstmEnd = System.currentTimeMillis();
                                 lstmTimes[index] = lstmEnd - lstmStart;
@@ -295,24 +279,24 @@ public class MainActivity extends Activity {
 
                             Log.w("***", "median of lstm is:" + lstmTimes[4]);
                         }
-                        try{
+                        try {
                             Thread.sleep(60000);
-                        }catch (Exception e){
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
 
                     }
 
-                    try{
+                    try {
                         Thread.sleep(60000);
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
 
-                try{
+                try {
                     Thread.sleep(180000);
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
