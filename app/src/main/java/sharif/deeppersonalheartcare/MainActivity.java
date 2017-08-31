@@ -271,7 +271,8 @@ public class MainActivity extends Activity {
                 float[] b1 = arrayCutter1D(arrayFactory.get1DFloats("b1"), lstmNh);
                 float[] b2 = arrayCutter1D(arrayFactory.get1DFloats("b2"), lstmNh);
                 float[] b3 = arrayCutter1D(arrayFactory.get1DFloats("b3"), lstmNh);
-                float[] b4 = arrayCutter1D(arrayFactory.get1DFloats("fully_connected_b"), 7);
+                float[] fullyConnectedB = arrayCutter1D(arrayFactory.
+                        get1DFloats("fully_connected_b"), 7);
 
                 float[] c = arrayCutter1D(arrayFactory.get1DFloats("c"), lstmNh);
                 float[] h = arrayCutter1D(arrayFactory.get1DFloats("h"), lstmNh);
@@ -386,7 +387,8 @@ public class MainActivity extends Activity {
 
                     }
 
-                    sum2Vector(cross(h, fullyConnected), b4);//it's the fully connected layer
+                    //it's the fully connected layer
+                    sum2Vector(cross(h, fullyConnected), fullyConnectedB);
 
                     long lstmEnd = System.currentTimeMillis();
                     lstmTimes[index] = lstmEnd - lstmStart;
@@ -411,8 +413,8 @@ public class MainActivity extends Activity {
                 Arrays.sort(pcaTimes);
                 Arrays.sort(waveletTimes);
 
-        mTextView.setText("lstm time is:" + lstmTimes[4] + "\n pca time is: " +
-                pcaTimes[4] + "\n wavelet time is: " + waveletTimes[4]);
+                mTextView.setText("lstm time is:" + lstmTimes[4] + "\n pca time is: " +
+                        pcaTimes[4] + "\n wavelet time is: " + waveletTimes[4]);
 
                 Log.w("***", "lstm time is:" + lstmTimes[4] + "\npca time is: " +
                         pcaTimes[4] + "\nwavelet time is: " + waveletTimes[4]);
