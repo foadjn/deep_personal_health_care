@@ -222,16 +222,16 @@ public class MainActivity extends Activity {
                             }
 
 
-        /*
-        from here the main code start to dot, cross and sum the matrices
-         */
+                            /*
+                            from here the main code start to dot, cross and sum the matrices
+                             */
                             for (int index = 0; index < 9; index++) {
 
-            /*
-            ********************************************************************
-            ****************************   LSTM start  *************************
-            ********************************************************************
-             */
+                                /*
+                                ********************************************************************
+                                ****************************   LSTM start  *************************
+                                ********************************************************************
+                                 */
                                 long lstmStart = System.currentTimeMillis();
 
                                 for (int l = 0; l < lstmDepth; l++) {
