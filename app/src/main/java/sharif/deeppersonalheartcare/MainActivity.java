@@ -169,128 +169,152 @@ public class MainActivity extends Activity {
             public void onLayoutInflated(WatchViewStub stub) {
                 mTextView = stub.findViewById(R.id.text);
 
-                List<ApplicationInfo> packages;
-                PackageManager pm = getPackageManager();
-                //get a list of installed apps.
-                packages = pm.getInstalledApplications(0);
+                int[] allNh = new int[]{30, 20, 40, 10};
+                int[] allLSTMDepth = new int[]{4, 20};
+                int[] allPcaOutputDim = new int[]{600, 500, 400, 300, 200, 100};
 
-                ActivityManager mActivityManager = (ActivityManager) getApplicationContext()
-                        .getSystemService(Context.ACTIVITY_SERVICE);
+                for (int lstmNh : allNh) {
+                    for (int lstmDepth : allLSTMDepth) {
+                        for (int pcaOutput : allPcaOutputDim) {
 
-                for (ApplicationInfo packageInfo : packages) {
-                    mActivityManager.killBackgroundProcesses(packageInfo.packageName);
-                }
-                int[] allLSTMDepth = new int[]{4, 5, 6};
-                for (int lstmDepth : allLSTMDepth) {
+                            final int lstmWidth = pcaOutput / lstmDepth;
 
+                            ArraysFactory arrayFactory = new ArraysFactory(getApplicationContext());
 
-                    final int pcaOutput = 420;
-                    final int lstmWidth = pcaOutput / lstmDepth;
-                    final int lstmNh = 60;
+                            long[] lstmTimes = new long[9];
 
-                    ArraysFactory arrayFactory = new ArraysFactory(getApplicationContext());
+                            float[][] w0 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("w0"), pcaOutput, lstmNh));
+                            float[][] w1 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("w1"), pcaOutput, lstmNh));
+                            float[][] w2 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("w2"), pcaOutput, lstmNh));
+                            float[][] w3 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("w3"), pcaOutput, lstmNh));
 
-                    long[] lstmTimes = new long[9];
+                            float[][] u0 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("u0"), lstmNh, lstmNh));
+                            float[][] u1 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("u1"), lstmNh, lstmNh));
+                            float[][] u2 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("u2"), lstmNh, lstmNh));
+                            float[][] u3 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("u3"), lstmNh, lstmNh));
 
-                    float[][] w0 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("w0"), pcaOutput, lstmNh));
-                    float[][] w1 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("w1"), pcaOutput, lstmNh));
-                    float[][] w2 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("w2"), pcaOutput, lstmNh));
-                    float[][] w3 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("w3"), pcaOutput, lstmNh));
+                            float[] b0 = arrayCutter1D(arrayFactory.get1DFloats("b0"), lstmNh);
+                            float[] b1 = arrayCutter1D(arrayFactory.get1DFloats("b1"), lstmNh);
+                            float[] b2 = arrayCutter1D(arrayFactory.get1DFloats("b2"), lstmNh);
+                            float[] b3 = arrayCutter1D(arrayFactory.get1DFloats("b3"), lstmNh);
+                            float[] b4 = arrayCutter1D(arrayFactory.get1DFloats("fully_connected_b"), 7);
 
-                    float[][] u0 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("u0"), lstmNh, lstmNh));
-                    float[][] u1 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("u1"), lstmNh, lstmNh));
-                    float[][] u2 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("u2"), lstmNh, lstmNh));
-                    float[][] u3 = transposeMatrix(arrayCutter2D(arrayFactory.get2DFloats("u3"), lstmNh, lstmNh));
+                            float[] c = arrayCutter1D(arrayFactory.get1DFloats("c"), lstmNh);
+                            float[] h = arrayCutter1D(arrayFactory.get1DFloats("h"), lstmNh);
 
-                    float[] b0 = arrayCutter1D(arrayFactory.get1DFloats("b0"), lstmNh);
-                    float[] b1 = arrayCutter1D(arrayFactory.get1DFloats("b1"), lstmNh);
-                    float[] b2 = arrayCutter1D(arrayFactory.get1DFloats("b2"), lstmNh);
-                    float[] b3 = arrayCutter1D(arrayFactory.get1DFloats("b3"), lstmNh);
-                    float[] b4 = arrayCutter1D(arrayFactory.get1DFloats("fully_connected_b"), 7);
+                            //fully connected
+                            float[][] fullyConnected = transposeMatrix(arrayCutter2D(
+                                    arrayFactory.get2DFloats("fully_connected_w"), lstmNh, 7));
 
-                    float[] c = arrayCutter1D(arrayFactory.get1DFloats("c"), lstmNh);
-                    float[] h = arrayCutter1D(arrayFactory.get1DFloats("h"), lstmNh);
+                            //according to the paper this is the lstm input and it's name must be x.
+                            float[] x = arrayCutter1D(arrayFactory.get1DFloats("x"), pcaOutput);
 
-                    //fully connected
-                    float[][] fullyConnected = transposeMatrix(arrayCutter2D(
-                            arrayFactory.get2DFloats("fully_connected_w"), lstmNh, 7));
+                            List<ApplicationInfo> packages;
+                            PackageManager pm = getPackageManager();
+                            //get a list of installed apps.
+                            packages = pm.getInstalledApplications(0);
 
-                    //according to the paper this is the lstm input and it's name must be x.
-                    float[] x = arrayCutter1D(arrayFactory.get1DFloats("x"), pcaOutput);
+                            ActivityManager mActivityManager = (ActivityManager) getApplicationContext()
+                                    .getSystemService(Context.ACTIVITY_SERVICE);
 
-
+                            for (ApplicationInfo packageInfo : packages) {
+                                mActivityManager.killBackgroundProcesses(packageInfo.packageName);
+                            }
 
 
         /*
         from here the main code start to dot, cross and sum the matrices
          */
-                    for (int index = 0; index < 9; index++) {
+                            for (int index = 0; index < 9; index++) {
 
             /*
             ********************************************************************
             ****************************   LSTM start  *************************
             ********************************************************************
              */
-                        long lstmStart = System.currentTimeMillis();
+                                long lstmStart = System.currentTimeMillis();
 
-                        for (int l = 0; l < lstmDepth; l++) {
-                            float[] i = tanHEval(sum3vector(
-                                    newCrossInRange(x, w0, l * lstmWidth, (l + 1) * lstmWidth),
-                                    newCross(h, u0),
-                                    b0)
-                            );
+                                for (int l = 0; l < lstmDepth; l++) {
+                                    float[] i = tanHEval(sum3vector(
+                                            newCrossInRange(x, w0, l * lstmWidth, (l + 1) * lstmWidth),
+                                            newCross(h, u0),
+                                            b0)
+                                    );
 
-                            c = sum2Vector(
-                                    dot(
-                                            sigmoid(sum3vector(
-                                                    newCrossInRange(x, w1, l * lstmWidth,
-                                                            (l + 1) * lstmWidth),
-                                                    newCross(h, u1),
-                                                    b1)
+                                    c = sum2Vector(
+                                            dot(
+                                                    sigmoid(sum3vector(
+                                                            newCrossInRange(x, w1, l * lstmWidth,
+                                                                    (l + 1) * lstmWidth),
+                                                            newCross(h, u1),
+                                                            b1)
+                                                    ),
+                                                    i
                                             ),
-                                            i
-                                    ),
-                                    dot(
-                                            sigmoid(sum3vector(
-                                                    newCrossInRange(x, w2, l * lstmWidth,
-                                                            (l + 1) * lstmWidth),
-                                                    newCross(h, u2),
-                                                    b2)
+                                            dot(
+                                                    sigmoid(sum3vector(
+                                                            newCrossInRange(x, w2, l * lstmWidth,
+                                                                    (l + 1) * lstmWidth),
+                                                            newCross(h, u2),
+                                                            b2)
+                                                    ),
+                                                    c
+                                            )
+                                    );
+                                    h = dot(
+                                            sigmoid(
+                                                    sum3vector(
+                                                            newCrossInRange(x, w3, l * lstmWidth,
+                                                                    (l + 1) * lstmWidth),
+                                                            newCross(h, u3),
+                                                            b3)
                                             ),
-                                            c
-                                    )
-                            );
-                            h = dot(
-                                    sigmoid(
-                                            sum3vector(
-                                                    newCrossInRange(x, w3, l * lstmWidth,
-                                                            (l + 1) * lstmWidth),
-                                                    newCross(h, u3),
-                                                    b3)
-                                    ),
-                                    tanHEval(c)
-                            );
+                                            tanHEval(c)
+                                    );
 
+                                }
+
+                                sum2Vector(newCross(h, fullyConnected), b4);//it's the fully connected layer
+
+                                long lstmEnd = System.currentTimeMillis();
+                                lstmTimes[index] = lstmEnd - lstmStart;
+
+                            }
+                            Log.d("pof.Hashemi", "nh is: " + lstmNh +
+                                    "\nLSTM depth is:" + lstmDepth +
+                                    "\npca output dim is: " + pcaOutput
+                            );
+                            for (int i = 0; i < 9; i++) {
+                                Log.d("prof.Hashemi", "lstm time is:" + lstmTimes[i]);
+                            }
+
+                            Arrays.sort(lstmTimes);
+                            String massage = String.format("lstm time is:%s",
+                                    String.valueOf(lstmTimes[4]));
+                            mTextView.setText(massage);
+
+                            Log.w("***", "median of lstm is:" + lstmTimes[4]);
+                        }
+                        try{
+                            Thread.sleep(60000);
+                        }catch (Exception e){
+                            e.printStackTrace();
                         }
 
-                        sum2Vector(newCross(h, fullyConnected), b4);//it's the fully connected layer
-
-                        long lstmEnd = System.currentTimeMillis();
-                        lstmTimes[index] = lstmEnd - lstmStart;
-
-                    }
-                    Log.d("pof.Hashemi", "LSTM depth is:" + lstmDepth);
-                    for (int i = 0; i < 9; i++) {
-                        Log.d("prof.Hashemi", "lstm time is:" + lstmTimes[i]);
                     }
 
-                    Arrays.sort(lstmTimes);
-                    String massage = String.format("lstm time is:%s", String.valueOf(lstmTimes[4]));
-                    mTextView.setText(massage);
-
-                    Log.w("***", "median of lstm is:" + lstmTimes[4]);
+                    try{
+                        Thread.sleep(60000);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
                 }
 
+                try{
+                    Thread.sleep(180000);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
             }
         });
     }
