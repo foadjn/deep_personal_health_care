@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.wearable.view.WatchViewStub;
 import android.util.Log;
 import android.widget.TextView;
 
@@ -20,23 +19,7 @@ import sharif.deeppersonalheartcare.wavelet.Wavelet;
 public class MainActivity extends Activity {
 
     static Random random = new Random();
-    private TextView mTextView;
-
-    private float[] cross(float[] in1, float[][] in2) {
-
-        int m = in2.length;
-        int n = in2[0].length;
-
-        float[] res = new float[n];
-
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < m; j++) {
-                res[i] += in2[j][i] * in1[j];
-            }
-        }
-
-        return res;
-    }
+    private String message;
 
     private float[][] randomInit2D(float[][] in) {
 
@@ -105,12 +88,26 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        final WatchViewStub stub = findViewById(R.id.watch_view_stub);
-        stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
+        setContentView(R.layout.round_activity_main);
+        TextView mTextView = findViewById(R.id.text);
+
+        List<ApplicationInfo> packages;
+        PackageManager pm = getPackageManager();
+        //get a list of installed apps.
+        packages = pm.getInstalledApplications(0);
+
+        ActivityManager mActivityManager = (ActivityManager) getApplicationContext()
+                .getSystemService(Context.ACTIVITY_SERVICE);
+
+        for (ApplicationInfo packageInfo : packages) {
+            mActivityManager.killBackgroundProcesses(packageInfo.packageName);
+        }
+
+        Thread backGroundThread = new Thread(new Runnable() {
             @Override
-            public void onLayoutInflated(WatchViewStub stub) {
-                mTextView = stub.findViewById(R.id.text);
+            public void run() {
+
+
 
                 ArraysFactory arrayFactory = new ArraysFactory(getApplicationContext());
 
@@ -124,20 +121,8 @@ public class MainActivity extends Activity {
                 for (int pcaInput : allPcaInput) {
                     for (int pcaOutput : allPcaOutput) {
 
-                        List<ApplicationInfo> packages;
-                        PackageManager pm = getPackageManager();
-                        //get a list of installed apps.
-                        packages = pm.getInstalledApplications(0);
 
-                        ActivityManager mActivityManager = (ActivityManager) getApplicationContext()
-                                .getSystemService(Context.ACTIVITY_SERVICE);
-
-                        for (ApplicationInfo packageInfo : packages) {
-                            mActivityManager.killBackgroundProcesses(packageInfo.packageName);
-                        }
-
-
-                        long[] pcaTimes = new long[5];
+                        long[] pcaTimes = new long[9];
 
                         float[] firstRawInput = arrayFactory.get1DFloats("first_raw_input");
                         float[] firstFeature = arrayFactory.get1DFloats("first_feature");
@@ -154,7 +139,7 @@ public class MainActivity extends Activity {
                         /*
                         from here the main code start to dot, cross and sum the matrices
                          */
-                        for (int index = 0; index < 5; index++) {
+                        for (int index = 0; index < 9; index++) {
 
                             /*
                             ********************************************************************
@@ -196,7 +181,7 @@ public class MainActivity extends Activity {
                             Log.d("****", pcaTotalTime + "");
 
                             try {
-                                if (index != 4)
+                                if (index != 8)
                                     Thread.sleep(60000);
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -206,23 +191,32 @@ public class MainActivity extends Activity {
 
                         Log.d("prof.Hashemi", "pca input dim is:" + pcaInput);
                         Log.d("prof.Hashemi", "pca output dim is:" + pcaOutput);
-                        for (int i = 0; i < 5; i++) {
+                        for (int i = 0; i < 9; i++) {
                             Log.d("prof.Hashemi", "pca time is:" + pcaTimes[i]);
                         }
 
                         Arrays.sort(pcaTimes);
 
-                        String massage = "pca time is:" + pcaTimes[2];
-                        mTextView.setText(massage);
+                        message = "pca time is:" + pcaTimes[4];
 
-                        Log.w("***", "median of pca is:" + pcaTimes[2]);
+                        Log.w("***", "median of pca is:" + pcaTimes[4]);
                     }
                 }
+
             }
-
-
         });
+
+        try {
+
+            backGroundThread.start();
+            backGroundThread.wait();
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        mTextView.setText(message);
     }
+
 
     private float[] newCross(float[] in1, float[][] in2) {
 
