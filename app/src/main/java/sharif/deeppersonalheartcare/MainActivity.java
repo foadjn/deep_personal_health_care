@@ -129,17 +129,21 @@ public class MainActivity extends Activity {
         setContentView(R.layout.round_activity_main);
         final TextView mTextView = findViewById(R.id.text);
 
+
         List<ApplicationInfo> packages;
         PackageManager pm = getPackageManager();
-        //get a list of installed apps.
         packages = pm.getInstalledApplications(0);
 
-        ActivityManager mActivityManager = (ActivityManager) getApplicationContext()
-                .getSystemService(Context.ACTIVITY_SERVICE);
+        ActivityManager mActivityManager = (ActivityManager) getApplicationContext().
+                getSystemService(Context.ACTIVITY_SERVICE);
+        String myPackage = getApplicationContext().getPackageName();
 
         for (ApplicationInfo packageInfo : packages) {
+            if ((packageInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 1) continue;
+            if (packageInfo.packageName.equals(myPackage)) continue;
             mActivityManager.killBackgroundProcesses(packageInfo.packageName);
         }
+
 
         Thread backGroundThread = new Thread(new Runnable() {
             @Override
