@@ -19,7 +19,7 @@ import sharif.deeppersonalheartcare.wavelet.Wavelet;
 public class MainActivity extends Activity {
 
     static Random random = new Random();
-    private String message;
+    private static String message;
 
     private float[][] randomInit2D(float[][] in) {
 
@@ -89,7 +89,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.round_activity_main);
-        TextView mTextView = findViewById(R.id.text);
+        final TextView mTextView = findViewById(R.id.text);
 
         List<ApplicationInfo> packages;
         PackageManager pm = getPackageManager();
@@ -106,8 +106,6 @@ public class MainActivity extends Activity {
         Thread backGroundThread = new Thread(new Runnable() {
             @Override
             public void run() {
-
-
 
                 ArraysFactory arrayFactory = new ArraysFactory(getApplicationContext());
 
