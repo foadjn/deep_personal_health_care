@@ -113,8 +113,8 @@ public class MainActivity extends Activity {
                 final int waveletDownSample = 1;
                 final int waveletOmit = 0;
 
-                final int[] allPcaInput = new int[]{600};
-                final int[] allPcaOutput = new int[]{1026};
+                final int[] allPcaInput = new int[]{1026};
+                final int[] allPcaOutput = new int[]{600};
 
                 for (int pcaInput : allPcaInput) {
                     for (int pcaOutput : allPcaOutput) {
