@@ -120,7 +120,7 @@ public class MainActivity extends Activity {
                     for (int pcaOutput : allPcaOutput) {
 
 
-                        long[] pcaTimes = new long[9];
+                        long[] pcaTimes = new long[5];
 
                         float[] firstRawInput = arrayFactory.get1DFloats("first_raw_input");
                         float[] firstFeature = arrayFactory.get1DFloats("first_feature");
@@ -137,7 +137,7 @@ public class MainActivity extends Activity {
                         /*
                         from here the main code start to dot, cross and sum the matrices
                          */
-                        for (int index = 0; index < 9; index++) {
+                        for (int index = 0; index < 5; index++) {
 
                             /*
                             ********************************************************************
@@ -179,7 +179,7 @@ public class MainActivity extends Activity {
                             Log.d("****", pcaTotalTime + "");
 
                             try {
-                                if (index != 8)
+                                if (index != 4)
                                     Thread.sleep(60000);
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -189,15 +189,15 @@ public class MainActivity extends Activity {
 
                         Log.d("prof.Hashemi", "pca input dim is:" + pcaInput);
                         Log.d("prof.Hashemi", "pca output dim is:" + pcaOutput);
-                        for (int i = 0; i < 9; i++) {
+                        for (int i = 0; i < 5; i++) {
                             Log.d("prof.Hashemi", "pca time is:" + pcaTimes[i]);
                         }
 
                         Arrays.sort(pcaTimes);
 
-                        message = "pca time is:" + pcaTimes[4];
+                        message = "pca time is:" + pcaTimes[2];
 
-                        Log.w("***", "median of pca is:" + pcaTimes[4]);
+                        Log.w("***", "median of pca is:" + pcaTimes[2]);
                     }
                 }
 
@@ -207,7 +207,7 @@ public class MainActivity extends Activity {
         try {
 
             backGroundThread.start();
-            backGroundThread.wait();
+            backGroundThread.join();
 
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -222,6 +222,7 @@ public class MainActivity extends Activity {
         int m = in2[0].length;//1026
 
         float[] res = new float[n];
+        Log.e("the n is:", n + "");
 
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < m; j++) {
