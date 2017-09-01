@@ -21,6 +21,29 @@ public class MainActivity extends Activity {
     static Random random = new Random();
     private static String message;
 
+    private float[] arrayCutter1D(float[] input, int x) {
+        float[] output = new float[x];
+
+        System.arraycopy(input, 0, output, 0, x);
+        return output;
+    }
+
+    public float[][] transposeMatrix(float[][] m) {
+
+        int rowNumber = m.length;
+        int columnNumber = m[0].length;
+
+        float[][] temp = new float[columnNumber][rowNumber];
+
+        for (int i = 0; i < rowNumber; i++) {
+            for (int j = 0; j < columnNumber; j++) {
+                temp[j][i] = m[i][j];
+            }
+        }
+
+        return temp;
+    }
+
     private float[][] randomInit2D(float[][] in) {
 
         int dim1 = in.length;
@@ -85,6 +108,21 @@ public class MainActivity extends Activity {
         }
     }
 
+    private float[] newCross(float[] in1, float[][] in2) {
+
+        int n = in2.length;//600
+        int m = in2[0].length;//1026
+
+        float[] res = new float[n];
+
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                res[i] += in2[i][j] * in1[j];
+            }
+        }
+        return res;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -113,8 +151,8 @@ public class MainActivity extends Activity {
                 final int waveletDownSample = 1;
                 final int waveletOmit = 0;
 
-                final int[] allPcaInput = new int[]{1026};
-                final int[] allPcaOutput = new int[]{600};
+                final int[] allPcaInput = new int[]{396};
+                final int[] allPcaOutput = new int[]{300};
 
                 for (int pcaInput : allPcaInput) {
                     for (int pcaOutput : allPcaOutput) {
@@ -131,8 +169,8 @@ public class MainActivity extends Activity {
                         float[] highPassFilter = arrayFactory.get1DFloats("high_pass_filter");
                         float[] lowPassFilter = arrayFactory.get1DFloats("low_pass_filter");
 
-                        float[][] pca = new float[pcaInput][pcaOutput];
-                        pca = randomInit2D(pca);
+                        float[][] tempPca = new float[pcaInput][pcaOutput];
+                        float[][] pca = transposeMatrix(randomInit2D(tempPca));
 
                         /*
                         from here the main code start to dot, cross and sum the matrices
@@ -156,13 +194,13 @@ public class MainActivity extends Activity {
                                     highPassFilter,
                                     lowPassFilter);
 
-                            float[] x1 = appender(
+                            float[] x1 = arrayCutter1D(appender(
                                     downSample(firstRawInput, rawDownSample),
                                     wavyInput1,
                                     firstFeature,
                                     downSample(secondRawInput, rawDownSample),
                                     wavyInput2,
-                                    secondFeature);
+                                    secondFeature), pcaInput);
 
                             /*
                             ********************************************************************
@@ -176,7 +214,6 @@ public class MainActivity extends Activity {
                             long crossEndTime = System.currentTimeMillis();
                             long pcaTotalTime = crossEndTime - crossStartTime;
                             pcaTimes[index] = pcaTotalTime;
-                            Log.d("****", pcaTotalTime + "");
 
                             try {
                                 if (index != 4)
@@ -213,23 +250,6 @@ public class MainActivity extends Activity {
             e.printStackTrace();
         }
         mTextView.setText(message);
-    }
-
-
-    private float[] newCross(float[] in1, float[][] in2) {
-
-        int n = in2.length;//600
-        int m = in2[0].length;//1026
-
-        float[] res = new float[n];
-        Log.e("the n is:", n + "");
-
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < m; j++) {
-                res[i] += in2[i][j] * in1[j];
-            }
-        }
-        return res;
     }
 
 }
