@@ -1,8 +1,6 @@
 package sharif.deeppersonalheartcare.convolution;
 
-/**
- * Created by Foad Jafari
- */
+
 public class Convolution {
 
     public float[] convolution1D(float[] inputSignal, float[] kernel) {
@@ -10,18 +8,18 @@ public class Convolution {
         kernel = reverser(kernel);
 
         float inputLength = inputSignal.length;
-        float mirrorPaddingSizeForBeginingOfArray = (float) kernel.length - 2;
+        float mirrorPaddingSizeForBeginningOfArray = (float) kernel.length - 2;
         float mirrorPaddingSizeForEndOfArray = (float) kernel.length - 2;
 
         if(inputLength %2 != 0){
             mirrorPaddingSizeForEndOfArray++;
         }
 
-        float outputLength = (float) Math.ceil(((inputLength - kernel.length + mirrorPaddingSizeForBeginingOfArray + mirrorPaddingSizeForEndOfArray) / 2) + 1);
+        float outputLength = (float) Math.ceil(((inputLength - kernel.length + mirrorPaddingSizeForBeginningOfArray + mirrorPaddingSizeForEndOfArray) / 2) + 1);
 
 //        System.out.println((int) outputLength);
 
-        inputSignal = makeMirrorPadding(inputSignal, (int) mirrorPaddingSizeForBeginingOfArray, (int) mirrorPaddingSizeForEndOfArray);
+        inputSignal = makeMirrorPadding(inputSignal, (int) mirrorPaddingSizeForBeginningOfArray, (int) mirrorPaddingSizeForEndOfArray);
         float[] output = new float[(int) outputLength];
 
         int index = 0;
@@ -33,24 +31,24 @@ public class Convolution {
         return output;
     }
 
-    private float[] makeMirrorPadding(float[] inputSignal, int mirrorPaddingSizeForBeginingOfArray, int mirrorPaddingSizeForEndOfArray) {
+    private float[] makeMirrorPadding(float[] inputSignal, int mirrorPaddingSizeForBeginningOfArray, int mirrorPaddingSizeForEndOfArray) {
 
 
         int inputLength = inputSignal.length;
-        float[] outPutVector = new float[inputLength + mirrorPaddingSizeForBeginingOfArray + mirrorPaddingSizeForEndOfArray];
+        float[] outPutVector = new float[inputLength + mirrorPaddingSizeForBeginningOfArray + mirrorPaddingSizeForEndOfArray];
 
         int counter = 0;
-        for (int index = 0; index < mirrorPaddingSizeForBeginingOfArray; index++) {
-            outPutVector[index] = inputSignal[mirrorPaddingSizeForBeginingOfArray - 1 - index];
+        for (int index = 0; index < mirrorPaddingSizeForBeginningOfArray; index++) {
+            outPutVector[index] = inputSignal[mirrorPaddingSizeForBeginningOfArray - 1 - index];
         }
 
-        for (int index = mirrorPaddingSizeForBeginingOfArray; index < inputLength + mirrorPaddingSizeForBeginingOfArray; index++) {
+        for (int index = mirrorPaddingSizeForBeginningOfArray; index < inputLength + mirrorPaddingSizeForBeginningOfArray; index++) {
             outPutVector[index] = inputSignal[counter];
             counter++;
         }
 
         counter = 1;
-        for (int index = inputLength + mirrorPaddingSizeForBeginingOfArray; index < (inputLength + mirrorPaddingSizeForBeginingOfArray + mirrorPaddingSizeForEndOfArray); index++) {
+        for (int index = inputLength + mirrorPaddingSizeForBeginningOfArray; index < (inputLength + mirrorPaddingSizeForBeginningOfArray + mirrorPaddingSizeForEndOfArray); index++) {
             outPutVector[index] = inputSignal[inputLength - counter];
             counter++;
         }

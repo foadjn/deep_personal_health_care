@@ -5,7 +5,7 @@ import sharif.deeppersonalheartcare.convolution.Convolution;
 
 public class Wavelet {
 
-    public float[] wavelet(int ommit, float[] inputSignal, float[] highPassFilter, float[] lowPassFilter) {
+    public float[] wavelet(int omit, float[] inputSignal, float[] highPassFilter, float[] lowPassFilter) {
 
         Convolution convolution = new Convolution();
 
@@ -21,10 +21,10 @@ public class Wavelet {
         float[] convolutionWithHighPass4 = convolution.convolution1D(convolutionWithLowPass3, highPassFilter);
         float[] convolutionWithLowPass4 = convolution.convolution1D(convolutionWithLowPass3, lowPassFilter);
 
-        if(ommit == 1){
+        if(omit == 1){
             convolutionWithHighPass1 = new float[0];
         }
-        if(ommit == 2){
+        if(omit == 2){
             convolutionWithHighPass1 = new float[0];
             convolutionWithHighPass2 = new float[0];
         }

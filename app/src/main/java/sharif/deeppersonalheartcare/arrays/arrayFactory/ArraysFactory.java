@@ -9,7 +9,8 @@ import java.io.ObjectInputStream;
 public class ArraysFactory {
 
     private Context context;
-    public ArraysFactory(Context context){
+
+    public ArraysFactory(Context context) {
         this.context = context;
     }
 
