@@ -382,19 +382,22 @@ public class MainActivity extends Activity {
                         c = sum2Vector(
                                 dot(
                                         sigmoid(sum3vector(
-                                                newCrossInRange(x, w1, l * lstmWidth, (l + 1) * lstmWidth),
+                                                newCrossInRange(x, w1,
+                                                        l * lstmWidth, (l + 1) * lstmWidth),
                                                 newCross(h, u1),
                                                 b1)
                                         ),
                                         tanHEval(sum3vector(
-                                                newCrossInRange(x, w0, l * lstmWidth, (l + 1) * lstmWidth),
+                                                newCrossInRange(x, w0,
+                                                        l * lstmWidth, (l + 1) * lstmWidth),
                                                 newCross(h, u0),
                                                 b0)
                                         )
                                 ),
                                 dot(
                                         sigmoid(sum3vector(
-                                                newCrossInRange(x, w2, l * lstmWidth, (l + 1) * lstmWidth),
+                                                newCrossInRange(x, w2,
+                                                        l * lstmWidth, (l + 1) * lstmWidth),
                                                 newCross(h, u2),
                                                 b2)
                                         ),
