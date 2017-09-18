@@ -247,7 +247,6 @@ public class MainActivity extends Activity {
             mActivityManager.killBackgroundProcesses(packageInfo.packageName);
         }
 
-
         Thread backgroundThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -441,8 +440,6 @@ public class MainActivity extends Activity {
             e.printStackTrace();
         }
 
-        char[] temp = new char[]{'N',  'L', 'R', 'S', 'V', 'F'};
-        Random r = new Random();
-        mTextView.setText(message + "\n the class is: " + temp[r.nextInt(temp.length)]);
+        mTextView.setText(message);
     }
 }
