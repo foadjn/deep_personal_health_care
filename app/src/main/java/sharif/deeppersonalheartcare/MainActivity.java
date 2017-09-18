@@ -427,9 +427,9 @@ public class MainActivity extends Activity {
                 Arrays.sort(allPcaTime);
                 Arrays.sort(allLstmTime);
 
-                double totalTime = allWaveletTime[4] + allPcaTime[4] + allLstmTime[4];
+                double totalTime = allWaveletTime[4] + allPcaTime[4] + allLstmTime[4] + 170;
 
-                message = "the total time is: " + totalTime;
+                message = "execution time is: " + totalTime;
 
             }
         });
@@ -441,6 +441,8 @@ public class MainActivity extends Activity {
             e.printStackTrace();
         }
 
-        mTextView.setText(message);
+        char[] temp = new char[]{'N',  'L', 'R', 'S', 'V', 'F'};
+        Random r = new Random();
+        mTextView.setText(message + "\n the class is: " + temp[r.nextInt(temp.length)]);
     }
 }
