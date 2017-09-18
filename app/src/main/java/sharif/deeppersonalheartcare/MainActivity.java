@@ -20,7 +20,7 @@ public class MainActivity extends Activity {
     private String message;
     private Random random = new Random();
 
-    private static int pcaInputCalculator(int rawDownSample, int waveletDownSample, int waveletOmit) {
+    private int pcaInputCalculator(int rawDownSample, int waveletDownSample, int waveletOmit) {
 
         int pcaInput = 0;
 
@@ -130,7 +130,6 @@ public class MainActivity extends Activity {
                 temp[j][i] = m[i][j];
             }
         }
-
         return temp;
     }
 
@@ -377,7 +376,6 @@ public class MainActivity extends Activity {
                      */
                     long lstmStart = System.currentTimeMillis();
                     for (int l = 0; l < lstmDepth; l++) {
-
 
                         c = sum2Vector(
                                 dot(
