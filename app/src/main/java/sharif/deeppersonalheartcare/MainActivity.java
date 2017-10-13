@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TextView;
 
 import java.util.Arrays;
@@ -97,7 +98,7 @@ public class MainActivity extends Activity {
 
     private float[] sigmoid(float[] in) {
         for (int i = 0; i < in.length; i++) {
-            in[i] = (float) (1 / (1 + Math.pow(Math.E, (-1 * in[i]))));
+            in[i] = (float) (1 / (1 + Math.exp(-1 * in[i])));
         }
         return in;
     }
@@ -105,7 +106,7 @@ public class MainActivity extends Activity {
     private float[][] arrayCutter2D(float[][] input, int x, int y) {
         float[][] output = new float[x][y];
 
-        for (int i = 0; i < y; i++) {
+        for (int i = 0; i < x; i++) {
             System.arraycopy(input[i], 0, output[i], 0, y);
         }
         return output;
@@ -426,9 +427,9 @@ public class MainActivity extends Activity {
                 Arrays.sort(allPcaTime);
                 Arrays.sort(allLstmTime);
 
-                double totalTime = allWaveletTime[4] + allPcaTime[4] + allLstmTime[4] + 170;
+                double totalTime = allWaveletTime[4] + allPcaTime[4] + allLstmTime[4];
 
-                message = "execution time is: " + totalTime;
+                message = "execution time is: " + totalTime + "\t the lstm time is:" + allLstmTime[4];
 
             }
         });
@@ -441,5 +442,6 @@ public class MainActivity extends Activity {
         }
 
         mTextView.setText(message);
+        Log.d("TIME", message);
     }
 }
