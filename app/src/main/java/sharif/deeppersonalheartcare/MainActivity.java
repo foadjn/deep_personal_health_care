@@ -429,7 +429,7 @@ public class MainActivity extends Activity {
 
                 double totalTime = allWaveletTime[4] + allPcaTime[4] + allLstmTime[4];
 
-                message = "execution time is: " + totalTime + "\t the lstm time is:" + allLstmTime[4];
+                message = "execution time is: " + totalTime;
 
             }
         });
