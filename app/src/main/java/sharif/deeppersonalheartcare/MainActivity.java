@@ -5,6 +5,7 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
@@ -18,7 +19,8 @@ import sharif.deeppersonalheartcare.wavelet.Wavelet;
 
 public class MainActivity extends Activity {
 
-    private String message;
+    private static String message;
+    private TextView mTextView;
     private Random random = new Random();
 
     private int pcaInputCalculator(int rawDownSample, int waveletDownSample, int waveletOmit) {
@@ -226,12 +228,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        setContentView(R.layout.round_activity_main);
-        TextView mTextView = findViewById(R.id.text);
+    private void killBakGroundProcess() {
 
         Context context = getApplicationContext();
         List<ApplicationInfo> packages;
@@ -248,200 +245,235 @@ public class MainActivity extends Activity {
             mActivityManager.killBackgroundProcesses(packageInfo.packageName);
         }
 
-        Thread backgroundThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
+    }
 
-                double[] allPcaTime = new double[9];
-                double[] allWaveletTime = new double[9];
-                double[] allLstmTime = new double[9];
+    private String mainFunction() {
 
-                ArraysFactory arrayFactory = new ArraysFactory(getApplicationContext());
+        killBakGroundProcess();
 
-                final int rawDownSample = 1;
-                final int waveletDownSample = 1;
-                final int waveletOmit = 0;
-                final int pcaInputDim = pcaInputCalculator(
-                        rawDownSample, waveletDownSample, waveletOmit);
-                final int pcaOutputDim = 600;
+        double[] allPcaTime = new double[9];
+        double[] allWaveletTime = new double[9];
+        double[] allLstmTime = new double[9];
 
-                final int lstmDepth = 4;
-                final int lstmNh = 30;
+        ArraysFactory arrayFactory = new ArraysFactory(getApplicationContext());
 
-                final int lstmWidth = pcaOutputDim / lstmDepth;
+        final int rawDownSample = 1;
+        final int waveletDownSample = 1;
+        final int waveletOmit = 0;
+        final int pcaInputDim = pcaInputCalculator(rawDownSample, waveletDownSample, waveletOmit);
+        final int pcaOutputDim = 600;
 
-                float[][] w0 = transposeMatrix(arrayCutter2D(
-                        arrayFactory.get2DFloats("w0"), pcaOutputDim, lstmNh));
+        final int lstmDepth = 4;
+        final int lstmNh = 30;
 
-                float[][] w1 = transposeMatrix(arrayCutter2D(
-                        arrayFactory.get2DFloats("w1"), pcaOutputDim, lstmNh));
+        final int lstmWidth = pcaOutputDim / lstmDepth;
 
-                float[][] w2 = transposeMatrix(arrayCutter2D(
-                        arrayFactory.get2DFloats("w2"), pcaOutputDim, lstmNh));
+        float[][] w0 = transposeMatrix(arrayCutter2D(
+                arrayFactory.get2DFloats("w0"), pcaOutputDim, lstmNh));
 
-                float[][] w3 = transposeMatrix(arrayCutter2D(
-                        arrayFactory.get2DFloats("w3"), pcaOutputDim, lstmNh));
+        float[][] w1 = transposeMatrix(arrayCutter2D(
+                arrayFactory.get2DFloats("w1"), pcaOutputDim, lstmNh));
 
-                float[][] u0 = transposeMatrix(arrayCutter2D(
-                        arrayFactory.get2DFloats("u0"), lstmNh, lstmNh));
+        float[][] w2 = transposeMatrix(arrayCutter2D(
+                arrayFactory.get2DFloats("w2"), pcaOutputDim, lstmNh));
 
-                float[][] u1 = transposeMatrix(arrayCutter2D(
-                        arrayFactory.get2DFloats("u1"), lstmNh, lstmNh));
+        float[][] w3 = transposeMatrix(arrayCutter2D(
+                arrayFactory.get2DFloats("w3"), pcaOutputDim, lstmNh));
 
-                float[][] u2 = transposeMatrix(arrayCutter2D(
-                        arrayFactory.get2DFloats("u2"), lstmNh, lstmNh));
+        float[][] u0 = transposeMatrix(arrayCutter2D(
+                arrayFactory.get2DFloats("u0"), lstmNh, lstmNh));
 
-                float[][] u3 = transposeMatrix(arrayCutter2D(
-                        arrayFactory.get2DFloats("u3"), lstmNh, lstmNh));
+        float[][] u1 = transposeMatrix(arrayCutter2D(
+                arrayFactory.get2DFloats("u1"), lstmNh, lstmNh));
 
-                float[] b0 = arrayCutter1D(arrayFactory.get1DFloats("b0"), lstmNh);
-                float[] b1 = arrayCutter1D(arrayFactory.get1DFloats("b1"), lstmNh);
-                float[] b2 = arrayCutter1D(arrayFactory.get1DFloats("b2"), lstmNh);
-                float[] b3 = arrayCutter1D(arrayFactory.get1DFloats("b3"), lstmNh);
-                float[] fullyConnectedB = arrayCutter1D(
-                        arrayFactory.get1DFloats("fully_connected_b"), 7);
+        float[][] u2 = transposeMatrix(arrayCutter2D(
+                arrayFactory.get2DFloats("u2"), lstmNh, lstmNh));
 
-                float[] c = arrayCutter1D(arrayFactory.get1DFloats("c"), lstmNh);
-                float[] h = arrayCutter1D(arrayFactory.get1DFloats("h"), lstmNh);
+        float[][] u3 = transposeMatrix(arrayCutter2D(
+                arrayFactory.get2DFloats("u3"), lstmNh, lstmNh));
 
-                //fully connected
-                float[][] fullyConnected = transposeMatrix(arrayCutter2D(
-                        arrayFactory.get2DFloats("fully_connected_w"), lstmNh, 7));
+        float[] b0 = arrayCutter1D(arrayFactory.get1DFloats("b0"), lstmNh);
+        float[] b1 = arrayCutter1D(arrayFactory.get1DFloats("b1"), lstmNh);
+        float[] b2 = arrayCutter1D(arrayFactory.get1DFloats("b2"), lstmNh);
+        float[] b3 = arrayCutter1D(arrayFactory.get1DFloats("b3"), lstmNh);
+        float[] fullyConnectedB = arrayCutter1D(
+                arrayFactory.get1DFloats("fully_connected_b"), 7);
 
-                //according to the paper this is the lstm input and it's name must be x.
-                float[] x = arrayCutter1D(arrayFactory.get1DFloats("x"), pcaOutputDim);
+        float[] c = arrayCutter1D(arrayFactory.get1DFloats("c"), lstmNh);
+        float[] h = arrayCutter1D(arrayFactory.get1DFloats("h"), lstmNh);
 
+        //fully connected
+        float[][] fullyConnected = transposeMatrix(arrayCutter2D(
+                arrayFactory.get2DFloats("fully_connected_w"), lstmNh, 7));
 
-                float[] firstRawInput = arrayFactory.get1DFloats("first_raw_input");
-                float[] firstFeature = arrayFactory.get1DFloats("first_feature");
-                float[] secondRawInput = arrayFactory.get1DFloats("second_raw_input");
-                float[] secondFeature = arrayFactory.get1DFloats("second_feature");
+        //according to the paper this is the lstm input and it's name must be x.
+        float[] x = arrayCutter1D(arrayFactory.get1DFloats("x"), pcaOutputDim);
 
 
-                float[] highPassFilter = arrayFactory.get1DFloats("high_pass_filter");
-                float[] lowPassFilter = arrayFactory.get1DFloats("low_pass_filter");
+        float[] firstRawInput = arrayFactory.get1DFloats("first_raw_input");
+        float[] firstFeature = arrayFactory.get1DFloats("first_feature");
+        float[] secondRawInput = arrayFactory.get1DFloats("second_raw_input");
+        float[] secondFeature = arrayFactory.get1DFloats("second_feature");
 
-                float[][] tempPca = new float[pcaInputDim][pcaOutputDim];
-                float[][] pca = transposeMatrix(randomInit2D(tempPca));
+
+        float[] highPassFilter = arrayFactory.get1DFloats("high_pass_filter");
+        float[] lowPassFilter = arrayFactory.get1DFloats("low_pass_filter");
+
+        float[][] tempPca = new float[pcaInputDim][pcaOutputDim];
+        float[][] pca = transposeMatrix(randomInit2D(tempPca));
 
 
-                for (int index = 0; index < 9; index++) {
+        for (int index = 0; index < 9; index++) {
 
-                    /*
-                    ********************************************************************
-                    *****************************   wavelet start  *********************
-                    ********************************************************************
-                     */
-                    double waveletStart = System.currentTimeMillis();
+            /*
+            ********************************************************************
+            *****************************   wavelet start  *********************
+            ********************************************************************
+             */
+            double waveletStart = System.currentTimeMillis();
 
-                    Wavelet wavelet = new Wavelet();
-                    float[] wavyInput1 = wavelet.wavelet(waveletOmit,
-                            downSample(firstRawInput, waveletDownSample),
-                            highPassFilter,
-                            lowPassFilter);
+            Wavelet wavelet = new Wavelet();
+            float[] wavyInput1 = wavelet.wavelet(waveletOmit,
+                    downSample(firstRawInput, waveletDownSample),
+                    highPassFilter,
+                    lowPassFilter);
 
-                    float[] wavyInput2 = wavelet.wavelet(waveletOmit,
-                            downSample(secondRawInput, waveletDownSample),
-                            highPassFilter,
-                            lowPassFilter);
+            float[] wavyInput2 = wavelet.wavelet(waveletOmit,
+                    downSample(secondRawInput, waveletDownSample),
+                    highPassFilter,
+                    lowPassFilter);
 
-                    float[] x1 = arrayCutter1D(appender(
-                            downSample(firstRawInput, rawDownSample),
-                            wavyInput1,
-                            firstFeature,
-                            downSample(secondRawInput, rawDownSample),
-                            wavyInput2,
-                            secondFeature), pcaInputDim);
+            float[] x1 = arrayCutter1D(appender(
+                    downSample(firstRawInput, rawDownSample),
+                    wavyInput1,
+                    firstFeature,
+                    downSample(secondRawInput, rawDownSample),
+                    wavyInput2,
+                    secondFeature), pcaInputDim);
 
-                    double waveletEnd = System.currentTimeMillis();
-                    double waveletTotalTime = waveletEnd - waveletStart;
-                    allWaveletTime[index] = waveletTotalTime;
+            double waveletEnd = System.currentTimeMillis();
+            double waveletTotalTime = waveletEnd - waveletStart;
+            allWaveletTime[index] = waveletTotalTime;
 
-                    /*
-                    ********************************************************************
-                    *****************************   pca start  *************************
-                    ********************************************************************
-                     */
-                    long crossStartTime = System.currentTimeMillis();
+            /*
+            ********************************************************************
+            *****************************   pca start  *************************
+            ********************************************************************
+            */
+            long crossStartTime = System.currentTimeMillis();
 
-                    newCross(x1, pca);
+            newCross(x1, pca);
 
-                    long crossEndTime = System.currentTimeMillis();
-                    allPcaTime[index] = crossEndTime - crossStartTime;
+            long crossEndTime = System.currentTimeMillis();
+            allPcaTime[index] = crossEndTime - crossStartTime;
 
                     /*
                     ********************************************************************
                     *****************************   Lstm start  ************************
                     ********************************************************************
                      */
-                    long lstmStart = System.currentTimeMillis();
-                    for (int l = 0; l < lstmDepth; l++) {
+            long lstmStart = System.currentTimeMillis();
+            for (int l = 0; l < lstmDepth; l++) {
 
-                        c = sum2Vector(
-                                dot(
-                                        sigmoid(sum3vector(
-                                                newCrossInRange(x, w1,
-                                                        l * lstmWidth, (l + 1) * lstmWidth),
-                                                newCross(h, u1),
-                                                b1)
-                                        ),
-                                        tanHEval(sum3vector(
-                                                newCrossInRange(x, w0,
-                                                        l * lstmWidth, (l + 1) * lstmWidth),
-                                                newCross(h, u0),
-                                                b0)
-                                        )
+                c = sum2Vector(
+                        dot(
+                                sigmoid(sum3vector(
+                                        newCrossInRange(x, w1,
+                                                l * lstmWidth, (l + 1) * lstmWidth),
+                                        newCross(h, u1),
+                                        b1)
                                 ),
-                                dot(
-                                        sigmoid(sum3vector(
-                                                newCrossInRange(x, w2,
-                                                        l * lstmWidth, (l + 1) * lstmWidth),
-                                                newCross(h, u2),
-                                                b2)
-                                        ),
-                                        c
+                                tanHEval(sum3vector(
+                                        newCrossInRange(x, w0,
+                                                l * lstmWidth, (l + 1) * lstmWidth),
+                                        newCross(h, u0),
+                                        b0)
                                 )
-                        );
-                        h = dot(
-                                sigmoid(
-                                        sum3vector(
-                                                newCrossInRange(x, w3, l * lstmWidth,
-                                                        (l + 1) * lstmWidth),
-                                                newCross(h, u3),
-                                                b3)
+                        ),
+                        dot(
+                                sigmoid(sum3vector(
+                                        newCrossInRange(x, w2,
+                                                l * lstmWidth, (l + 1) * lstmWidth),
+                                        newCross(h, u2),
+                                        b2)
                                 ),
-                                tanHEval(c)
-                        );
+                                c
+                        )
+                );
+                h = dot(
+                        sigmoid(
+                                sum3vector(
+                                        newCrossInRange(x, w3, l * lstmWidth,
+                                                (l + 1) * lstmWidth),
+                                        newCross(h, u3),
+                                        b3)
+                        ),
+                        tanHEval(c)
+                );
 
-                    }
+            }
 
-                    //it's the fully connected layer
-                    sum2Vector(newCross(h, fullyConnected), fullyConnectedB);
+            //it's the fully connected layer
+            sum2Vector(newCross(h, fullyConnected), fullyConnectedB);
 
-                    long lstmEnd = System.currentTimeMillis();
-                    allLstmTime[index] = lstmEnd - lstmStart;
+            long lstmEnd = System.currentTimeMillis();
+            allLstmTime[index] = lstmEnd - lstmStart;
 
-                }
+        }
 
-                Arrays.sort(allWaveletTime);
-                Arrays.sort(allPcaTime);
-                Arrays.sort(allLstmTime);
+        Arrays.sort(allWaveletTime);
+        Arrays.sort(allPcaTime);
+        Arrays.sort(allLstmTime);
 
-                double totalTime = allWaveletTime[4] + allPcaTime[4] + allLstmTime[4];
+        double totalTime = allWaveletTime[4] + allPcaTime[4] + allLstmTime[4];
+        return "execution time is: " + totalTime;
 
-                message = "execution time is: " + totalTime;
+    }
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.round_activity_main);
+        mTextView = findViewById(R.id.text);
+
+        Thread backgroundThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                message = mainFunction();
             }
         });
 
         try {
+
             backgroundThread.start();
             backgroundThread.join();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        mTextView.setText(message);
+
+        MainFunctionTask mainFunctionTask = new MainFunctionTask();
+        mainFunctionTask.execute();
+
+
+        String wholeMessage = mTextView.getText() + message;
+        mTextView.setText(wholeMessage);
         Log.d("TIME", message);
+    }
+
+    private class MainFunctionTask extends AsyncTask<Void, Void, String> {
+
+        @Override
+        protected String doInBackground(Void... params) {
+            return mainFunction();
+        }
+
+        @Override
+        protected void onPostExecute(String message) {
+            Log.d("AsyncTask", "The total time is:" + message);
+            mTextView.setText(message);
+        }
     }
 }
