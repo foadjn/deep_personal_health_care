@@ -367,11 +367,11 @@ public class MainActivity extends Activity {
             long crossEndTime = System.currentTimeMillis();
             allPcaTime[index] = crossEndTime - crossStartTime;
 
-                    /*
-                    ********************************************************************
-                    *****************************   Lstm start  ************************
-                    ********************************************************************
-                     */
+            /*
+            ********************************************************************
+            *****************************   Lstm start  ************************
+            ********************************************************************
+             */
             long lstmStart = System.currentTimeMillis();
             for (int l = 0; l < lstmDepth; l++) {
 
@@ -419,6 +419,12 @@ public class MainActivity extends Activity {
             long lstmEnd = System.currentTimeMillis();
             allLstmTime[index] = lstmEnd - lstmStart;
 
+            try {
+                Thread.sleep(60000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
         }
 
         Arrays.sort(allWaveletTime);
@@ -436,6 +442,8 @@ public class MainActivity extends Activity {
 
         setContentView(R.layout.round_activity_main);
         mTextView = findViewById(R.id.text);
+        String welcomeString = "welcome to Deep Personal Heart Care(DPHC)";
+        mTextView.setText(welcomeString);
 
         Thread backgroundThread = new Thread(new Runnable() {
             @Override
@@ -458,9 +466,9 @@ public class MainActivity extends Activity {
         mainFunctionTask.execute();
 
 
-        String wholeMessage = mTextView.getText() + message;
+        String wholeMessage = mTextView.getText() + "\n" +  message;
         mTextView.setText(wholeMessage);
-        Log.d("TIME", message);
+        Log.d("TIME", "Total execution time with Thread is: " + message);
     }
 
     private class MainFunctionTask extends AsyncTask<Void, Void, String> {
@@ -472,8 +480,8 @@ public class MainActivity extends Activity {
 
         @Override
         protected void onPostExecute(String message) {
-            Log.d("AsyncTask", "The total time is:" + message);
-            mTextView.setText(message);
+            Log.d("Time", "The total time with AsyncTask is:" + message);
+            mTextView.setText(mTextView.getText() + "\n" + message);
         }
     }
 }
