@@ -239,10 +239,12 @@ public class MainActivity extends Activity {
                 Context.ACTIVITY_SERVICE);
         String myPackage = getApplicationContext().getPackageName();
 
-        for (ApplicationInfo packageInfo : packages) {
-            if ((packageInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 1) continue;
-            if (packageInfo.packageName.equals(myPackage)) continue;
-            mActivityManager.killBackgroundProcesses(packageInfo.packageName);
+        if(mActivityManager != null){
+            for (ApplicationInfo packageInfo : packages) {
+                if ((packageInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 1) continue;
+                if (packageInfo.packageName.equals(myPackage)) continue;
+                mActivityManager.killBackgroundProcesses(packageInfo.packageName);
+            }
         }
 
     }
