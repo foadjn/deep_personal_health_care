@@ -3,7 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/DeepPersonalHeartCare.iml" filepath="$PROJECT_DIR$/DeepPersonalHeartCare.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/DeepPersonalHeartCare-app.iml" filepath="$PROJECT_DIR$/app/DeepPersonalHeartCare-app.iml" group="DeepPersonalHeartCare/app" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/new_plan-DeepPersonalHeartCare.iml" filepath="$PROJECT_DIR$/new_plan-DeepPersonalHeartCare.iml" group="DeepPersonalHeartCare" />
     </modules>
   </component>
 </project>
